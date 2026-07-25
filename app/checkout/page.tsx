@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Check, Copy, X } from 'lucide-react';
 import { useCart } from '@/components/cart-context';
 
 const schema = z.object({
@@ -15,6 +16,15 @@ const schema = z.object({
 });
 
 type CheckoutForm = z.infer<typeof schema>;
+
+interface PixPayment {
+  codigo: string;
+  paymentId: string;
+  qrCodeBase64: string;
+  pixCopyPaste: string;
+  expirationDate?: string;
+  amount: number;
+}
 
 const equipes = [
   'Apressentadores',
@@ -39,7 +49,8 @@ const equipes = [
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [payment, setPayment] = useState<PixPayment | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState } = useForm<CheckoutForm>({
@@ -67,7 +78,11 @@ export default function CheckoutPage() {
         setError(result?.message ?? 'Erro ao criar pedido.');
         return;
       }
-      setCheckoutUrl(result.checkoutUrl);
+      if (!result.qrCodeBase64 || !result.pixCopyPaste) {
+        setError('O pagamento foi criado, mas o Mercado Pago não retornou os dados do Pix.');
+        return;
+      }
+      setPayment(result);
       clearCart();
     } catch (err) {
       setError('Erro de comunicação com o servidor.');
@@ -133,14 +148,77 @@ export default function CheckoutPage() {
             >
               {loading ? 'Gerando pagamento…' : 'Gerar pagamento Pix'}
             </button>
-            {checkoutUrl ? (
-              <a href={checkoutUrl} className="rounded-3xl bg-emerald-500 px-6 py-4 text-center text-sm font-semibold text-white hover:bg-emerald-600">
-                Abrir pagamento Pix
-              </a>
-            ) : null}
           </div>
         </form>
       </div>
+
+      {payment ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pix-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+        >
+          <div className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Pagamento Pix</p>
+                <h2 id="pix-modal-title" className="mt-2 text-2xl font-bold text-slate-950">
+                  Escaneie para pagar
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">Pedido #{payment.codigo}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPayment(null)}
+                aria-label="Fechar"
+                className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mx-auto mt-6 w-fit rounded-3xl border border-slate-200 bg-white p-4">
+              {/* O Mercado Pago retorna somente o conteúdo base64, sem o prefixo data URL. */}
+              <img
+                src={`data:image/png;base64,${payment.qrCodeBase64.replace(/^data:image\/png;base64,/, '')}`}
+                alt="QR Code Pix do pedido"
+                className="h-56 w-56"
+              />
+            </div>
+
+            <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-center">
+              <p className="text-sm text-slate-500">Valor</p>
+              <p className="mt-1 text-3xl font-bold text-slate-950">
+                R$ {Number(payment.amount).toFixed(2).replace('.', ',')}
+              </p>
+            </div>
+
+            <div className="mt-5">
+              <label className="mb-2 block text-sm font-semibold text-slate-700">Pix copia e cola</label>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <p className="max-h-20 overflow-y-auto break-all text-xs text-slate-600">{payment.pixCopyPaste}</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(payment.pixCopyPaste);
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 2000);
+                }}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 font-semibold text-white hover:bg-slate-800"
+              >
+                {copied ? <Check size={18} /> : <Copy size={18} />}
+                {copied ? 'Código copiado' : 'Copiar código Pix'}
+              </button>
+            </div>
+
+            <p className="mt-5 text-center text-sm text-slate-500">
+              Após o pagamento, aguarde a confirmação automática do Mercado Pago.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
