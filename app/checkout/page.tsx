@@ -203,19 +203,45 @@ export default function CheckoutPage() {
               <label className="block text-sm font-bold text-violet-950">Imagens para personalização</label>
               <p className="mt-1 text-sm text-violet-700">Envie de 1 a 10 imagens em JPG, PNG, WEBP ou HEIC, com até 10 MB cada.</p>
               <input
+                id="imagens-personalizacao"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                accept="image/*,.heic,.heif"
                 multiple
-                onChange={(event) => setCustomFiles(Array.from(event.target.files ?? []).slice(0, 10))}
-                className="mt-4 block w-full rounded-2xl border border-violet-200 bg-white p-3 text-sm"
+                onChange={(event) => {
+                  const files = Array.from(event.target.files ?? []);
+                  const oversized = files.find((file) => file.size > 10 * 1024 * 1024);
+                  if (oversized) {
+                    setError(`A imagem "${oversized.name}" ultrapassa o limite de 10 MB.`);
+                    event.target.value = '';
+                    setCustomFiles([]);
+                    return;
+                  }
+                  setError(null);
+                  setCustomFiles(files.slice(0, 10));
+                }}
+                className="sr-only"
               />
+              <label
+                htmlFor="imagens-personalizacao"
+                className="mt-4 flex min-h-14 cursor-pointer touch-manipulation items-center justify-center rounded-2xl bg-violet-700 px-5 py-4 text-center text-sm font-bold text-white shadow-sm transition active:scale-[0.99]"
+              >
+                Selecionar imagens da galeria ou câmera
+              </label>
+              <p className="mt-2 text-xs text-violet-700">
+                Compatível com Android, iPhone e iPad. Você poderá usar a câmera ou escolher fotos já salvas.
+              </p>
               {customFiles.length > 0 ? (
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="mt-4">
+                  <p className="mb-2 text-sm font-bold text-violet-950">
+                    {customFiles.length} {customFiles.length === 1 ? 'imagem selecionada' : 'imagens selecionadas'}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
                   {customFiles.map((file) => (
                     <p key={`${file.name}-${file.lastModified}`} className="truncate rounded-xl bg-white px-3 py-2 text-xs text-slate-600">
                       {file.name}
                     </p>
                   ))}
+                  </div>
                 </div>
               ) : null}
             </div>

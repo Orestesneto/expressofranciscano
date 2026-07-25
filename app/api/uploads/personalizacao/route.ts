@@ -23,7 +23,9 @@ export async function POST(request: NextRequest) {
           throw new Error('Upload não autorizado para este pedido.');
         }
         return {
-          allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+          // image/* inclui os MIME types usados por Android e pelo Safari/iOS,
+          // inclusive variações de HEIC/HEIF enviadas pelo seletor de fotos.
+          allowedContentTypes: ['image/*'],
           maximumSizeInBytes: 10 * 1024 * 1024,
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({ productIds }),
