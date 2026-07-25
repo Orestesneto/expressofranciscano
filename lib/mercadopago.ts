@@ -1,13 +1,12 @@
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 
-const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
-
-if (!token) {
-  throw new Error('MERCADOPAGO_ACCESS_TOKEN is required in environment variables.');
+function getPaymentsClient() {
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error('MERCADOPAGO_ACCESS_TOKEN is required in environment variables.');
+  }
+  return new Payment(new MercadoPagoConfig({ accessToken: token }));
 }
-
-const client = new MercadoPagoConfig({ accessToken: token });
-const payments = new Payment(client);
 
 export interface CreatePixPaymentParams {
   amount: number;
@@ -28,7 +27,7 @@ export interface PixPaymentResult {
 }
 
 export async function createPixPayment(params: CreatePixPaymentParams): Promise<PixPaymentResult> {
-  const transaction = await payments.create({
+  const transaction = await getPaymentsClient().create({
     body: {
       transaction_amount: Number(params.amount),
       description: params.description,
@@ -54,5 +53,5 @@ export async function createPixPayment(params: CreatePixPaymentParams): Promise<
 }
 
 export async function getPayment(paymentId: string) {
-  return payments.get({ id: paymentId });
+  return getPaymentsClient().get({ id: paymentId });
 }
