@@ -6,7 +6,6 @@ import { createPixPayment } from '@/lib/mercadopago';
 const checkoutSchema = z.object({
   customer: z.object({
     nome: z.string().min(2),
-    sobrenome: z.string().min(2),
     equipe: z.string().min(1),
     telefone: z.string().optional(),
     observacao: z.string().optional(),
@@ -92,7 +91,7 @@ export async function POST(request: NextRequest) {
     data: {
       codigo: 'TEMP',
       nomeCliente: customer.nome,
-      sobrenomeCliente: customer.sobrenome,
+      sobrenomeCliente: '',
       telefone: customer.telefone,
       equipeNome: customer.equipe,
       valorTotal: valorTotal,
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
     amount: Number(valorTotal),
     description: `Pedido ${codigo}`,
     externalReference: codigo,
-    payerName: `${customer.nome} ${customer.sobrenome}`,
+    payerName: customer.nome,
     notificationUrl: new URL('/api/webhook', request.url).toString(),
   });
 

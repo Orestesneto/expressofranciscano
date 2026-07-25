@@ -9,7 +9,6 @@ import { useCart } from '@/components/cart-context';
 
 const schema = z.object({
   nome: z.string().min(2, 'Informe o nome'),
-  sobrenome: z.string().min(2, 'Informe o sobrenome'),
   equipe: z.string().min(1, 'Selecione a equipe'),
   telefone: z.string().optional(),
   observacao: z.string().optional(),
@@ -115,7 +114,6 @@ export default function CheckoutPage() {
   function onInvalid(fields: typeof formState.errors) {
     const labels: Record<string, string> = {
       nome: 'nome',
-      sobrenome: 'sobrenome',
       equipe: 'equipe',
     };
     const missing = Object.keys(fields).map((field) => labels[field] ?? field);
@@ -135,15 +133,10 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-semibold">Finalizar pedido</h1>
         <p className="mt-3 text-slate-600">Preencha os dados para gerar o pagamento Pix.</p>
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="mt-8 grid gap-5 md:grid-cols-2">
-          <div>
+          <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-semibold text-slate-700">Nome</label>
             <input className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('nome')} />
             <p className="mt-2 text-sm text-red-600">{formState.errors.nome?.message}</p>
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Sobrenome</label>
-            <input className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('sobrenome')} />
-            <p className="mt-2 text-sm text-red-600">{formState.errors.sobrenome?.message}</p>
           </div>
           <fieldset className="md:col-span-2">
             <legend className="mb-3 text-sm font-semibold text-slate-700">Equipe</legend>

@@ -37,7 +37,7 @@ export default async function PedidoConfirmadoPage({
         <div className="mt-8 grid gap-4 rounded-3xl bg-slate-50 p-6 sm:grid-cols-2">
           <div>
             <p className="text-sm text-slate-500">Cliente</p>
-            <p className="mt-1 font-semibold">{pedido.nomeCliente} {pedido.sobrenomeCliente}</p>
+            <p className="mt-1 font-semibold">{[pedido.nomeCliente, pedido.sobrenomeCliente].filter(Boolean).join(' ')}</p>
           </div>
           <div>
             <p className="text-sm text-slate-500">Equipe</p>
