@@ -41,8 +41,8 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
     resolver: zodResolver(schema),
     defaultValues: {
       nome: produto.nome,
-      descricao: produto.descricao,
-      imagemUrl: produto.imagemUrl,
+      descricao: produto.descricao ?? '',
+      imagemUrl: produto.imagemUrl ?? '',
       preco: Number(produto.preco),
       estoque: produto.estoque,
       estoqueMinimo: produto.estoqueMinimo,
@@ -54,8 +54,8 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
   useEffect(() => {
     reset({
       nome: produto.nome,
-      descricao: produto.descricao,
-      imagemUrl: produto.imagemUrl,
+      descricao: produto.descricao ?? '',
+      imagemUrl: produto.imagemUrl ?? '',
       preco: Number(produto.preco),
       estoque: produto.estoque,
       estoqueMinimo: produto.estoqueMinimo,
@@ -100,7 +100,25 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
         return;
       }
 
-      setSuccess('Produto atualizado com sucesso.');
+      const result = await response.json();
+      reset({
+        nome: result.produto.nome,
+        descricao: result.produto.descricao ?? '',
+        imagemUrl: result.produto.imagemUrl ?? '',
+        preco: Number(result.produto.preco),
+        estoque: result.produto.estoque,
+        estoqueMinimo: result.produto.estoqueMinimo,
+        disponivelVenda: result.produto.disponivelVenda,
+        ativo: result.produto.ativo,
+        ajusteQuantidade: undefined,
+        ajusteMotivo: '',
+      });
+      const historyResponse = await fetch(`/api/admin/produtos/${produto.id}/historico`);
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        setMovimentacoes(historyData.movimentacoes ?? []);
+      }
+      setSuccess(`Produto atualizado. Novo estoque: ${result.produto.estoque}.`);
     } catch (err) {
       setError('Erro de comunicação.');
     } finally {

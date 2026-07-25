@@ -39,8 +39,8 @@ export default async function ProdutoDetalhePage({ params }: Params) {
   const produtoSerializado = {
     id: produto.id,
     nome: produto.nome,
-    descricao: produto.descricao,
-    imagemUrl: produto.imagemUrl,
+    descricao: produto.descricao ?? '',
+    imagemUrl: produto.imagemUrl ?? '',
     preco: Number(produto.preco),
     estoque: produto.estoque,
     estoqueMinimo: produto.estoqueMinimo,
