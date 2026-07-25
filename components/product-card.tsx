@@ -9,16 +9,17 @@ interface ProductCardProps {
   descricao?: string;
   preco: number;
   estoque: number;
+  personalizado: boolean;
 }
 
-export default function ProductCard({ id, nome, descricao, preco, estoque }: ProductCardProps) {
+export default function ProductCard({ id, nome, descricao, preco, estoque, personalizado }: ProductCardProps) {
   const { addItem } = useCart();
   const [quantidade, setQuantidade] = useState(1);
   const [added, setAdded] = useState(false);
 
   function handleAdd() {
     const quantidadeValida = Math.max(1, Math.min(estoque, quantidade));
-    addItem({ productId: id, nome, preco, quantidade: quantidadeValida });
+    addItem({ productId: id, nome, preco, quantidade: quantidadeValida, personalizado });
     setQuantidade(quantidadeValida);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1800);
@@ -29,6 +30,11 @@ export default function ProductCard({ id, nome, descricao, preco, estoque }: Pro
       <div className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Produto</div>
       <h3 className="text-xl font-semibold text-slate-900">{nome}</h3>
       {descricao ? <p className="mt-2 text-sm text-slate-600">{descricao}</p> : null}
+      {personalizado ? (
+        <p className="mt-3 inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">
+          Personalizado · envie suas imagens no checkout
+        </p>
+      ) : null}
       <div className="mt-5 flex items-center justify-between gap-4">
         <div>
           <p className="text-base text-slate-900">R$ {preco.toFixed(2).replace('.', ',')}</p>

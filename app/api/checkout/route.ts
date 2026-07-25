@@ -18,6 +18,14 @@ const checkoutSchema = z.object({
       quantidade: z.number().int().min(1),
     }),
   ),
+  imagens: z.array(
+    z.object({
+      url: z.string().url(),
+      pathname: z.string().startsWith('personalizacoes/'),
+      nomeArquivo: z.string().min(1).max(255),
+      contentType: z.string().startsWith('image/'),
+    }),
+  ).max(10).default([]),
 });
 
 function formatCodigoPedido(id: number) {
@@ -33,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Dados inválidos.' }, { status: 400 });
   }
 
-  const { customer, items: rawItems } = parseResult.data;
+  const { customer, items: rawItems, imagens } = parseResult.data;
 
   // O carrinho é controlado pelo navegador. Consolida IDs repetidos antes de
   // consultar o banco para que preço, disponibilidade e estoque sejam sempre
@@ -61,6 +69,22 @@ export async function POST(request: NextRequest) {
 
   if (produtos.length !== produtosIds.length) {
     return NextResponse.json({ message: 'Um ou mais produtos não estão mais disponíveis.' }, { status: 400 });
+  }
+
+  const possuiProdutoPersonalizado = produtos.some((produto) => produto.personalizado);
+  if (possuiProdutoPersonalizado && imagens.length === 0) {
+    return NextResponse.json(
+      { message: 'Envie pelo menos uma imagem para o produto personalizado.' },
+      { status: 400 },
+    );
+  }
+
+  if (
+    imagens.some(
+      (imagem) => !new URL(imagem.url).hostname.endsWith('.private.blob.vercel-storage.com'),
+    )
+  ) {
+    return NextResponse.json({ message: 'Imagem de personalização inválida.' }, { status: 400 });
   }
 
   const orderItems = items.map((item) => {
@@ -101,6 +125,9 @@ export async function POST(request: NextRequest) {
       observacaoCliente: customer.observacao,
       itens: {
         create: orderItems,
+      },
+      imagens: {
+        create: imagens,
       },
     },
   });

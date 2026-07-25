@@ -51,6 +51,7 @@ model Produto {
   estoque         Int               @default(0)
   estoqueMinimo   Int               @default(0)
   disponivelVenda Boolean           @default(true)
+  personalizado   Boolean           @default(false)
   ativo           Boolean           @default(true)
   limitePorPedido Int?            
   createdAt       DateTime          @default(now())
@@ -97,8 +98,20 @@ model Pedido {
   pagamento             Pagamento?
   historicos            HistoricoPedido[]
   movimentacoesEstoque  MovimentacaoEstoque[]
+  imagens               PedidoImagem[]
 
   @@index([telefoneNormalizado])
+}
+
+model PedidoImagem {
+  id          Int      @id @default(autoincrement())
+  pedido      Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId    Int
+  url         String
+  pathname    String
+  nomeArquivo String
+  contentType String
+  createdAt   DateTime @default(now())
 }
 
 model PedidoItem {

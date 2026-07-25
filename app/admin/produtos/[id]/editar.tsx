@@ -13,6 +13,7 @@ const schema = z.object({
   estoque: z.number().int().min(0),
   estoqueMinimo: z.number().int().min(0),
   disponivelVenda: z.boolean(),
+  personalizado: z.boolean(),
   ativo: z.boolean(),
   ajusteQuantidade: z.number().int().optional(),
   ajusteMotivo: z.string().optional(),
@@ -47,6 +48,7 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
       estoque: produto.estoque,
       estoqueMinimo: produto.estoqueMinimo,
       disponivelVenda: produto.disponivelVenda,
+      personalizado: produto.personalizado,
       ativo: produto.ativo,
     },
   });
@@ -60,6 +62,7 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
       estoque: produto.estoque,
       estoqueMinimo: produto.estoqueMinimo,
       disponivelVenda: produto.disponivelVenda,
+      personalizado: produto.personalizado,
       ativo: produto.ativo,
     });
   }, [produto, reset]);
@@ -109,6 +112,7 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
         estoque: result.produto.estoque,
         estoqueMinimo: result.produto.estoqueMinimo,
         disponivelVenda: result.produto.disponivelVenda,
+        personalizado: result.produto.personalizado,
         ativo: result.produto.ativo,
         ajusteQuantidade: undefined,
         ajusteMotivo: '',
@@ -164,6 +168,10 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
             <label className="flex items-center gap-3">
               <input type="checkbox" {...register('disponivelVenda')} />
               <span className="text-sm">Disponível para venda</span>
+            </label>
+            <label className="flex items-center gap-3">
+              <input type="checkbox" {...register('personalizado')} />
+              <span className="text-sm">Produto personalizado</span>
             </label>
             <label className="flex items-center gap-3">
               <input type="checkbox" {...register('ativo')} />

@@ -11,6 +11,7 @@ const updateProdutoSchema = z.object({
   estoque: z.number().int().min(0),
   estoqueMinimo: z.number().int().min(0),
   disponivelVenda: z.boolean(),
+  personalizado: z.boolean(),
   ativo: z.boolean(),
   ajusteQuantidade: z.number().int().optional(),
   ajusteMotivo: z.string().optional(),
@@ -67,6 +68,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         estoque: estoqueFinal,
         estoqueMinimo: data.estoqueMinimo,
         disponivelVenda: data.disponivelVenda,
+        personalizado: data.personalizado,
         ativo: data.ativo,
       },
     });

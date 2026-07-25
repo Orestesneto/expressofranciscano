@@ -11,6 +11,7 @@ const produtoSchema = z.object({
   estoque: z.number().int().min(0),
   estoqueMinimo: z.number().int().min(0),
   disponivelVenda: z.boolean(),
+  personalizado: z.boolean(),
   ativo: z.boolean(),
 });
 
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       estoque: parseResult.data.estoque,
       estoqueMinimo: parseResult.data.estoqueMinimo,
       disponivelVenda: parseResult.data.disponivelVenda,
+      personalizado: parseResult.data.personalizado,
       ativo: parseResult.data.ativo,
     },
   });

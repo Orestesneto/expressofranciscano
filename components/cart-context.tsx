@@ -7,6 +7,7 @@ export interface CartItem {
   nome: string;
   preco: number;
   quantidade: number;
+  personalizado?: boolean;
 }
 
 interface CartContextValue {
@@ -49,7 +50,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const existing = current.find((x) => x.productId === item.productId);
       if (existing) {
         return current.map((x) =>
-          x.productId === item.productId ? { ...x, quantidade: x.quantidade + item.quantidade } : x,
+          x.productId === item.productId
+            ? { ...x, quantidade: x.quantidade + item.quantidade, personalizado: item.personalizado }
+            : x,
         );
       }
       return [...current, item];

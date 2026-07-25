@@ -14,6 +14,7 @@ const schema = z.object({
   estoque: z.number().int().min(0),
   estoqueMinimo: z.number().int().min(0),
   disponivelVenda: z.boolean(),
+  personalizado: z.boolean(),
   ativo: z.boolean(),
 });
 
@@ -29,6 +30,7 @@ export default function NovoProdutoPage() {
     defaultValues: {
       disponivelVenda: true,
       ativo: true,
+      personalizado: false,
       estoqueMinimo: 0,
       estoque: 0,
     },
@@ -99,6 +101,10 @@ export default function NovoProdutoPage() {
               <label className="flex items-center gap-3">
                 <input type="checkbox" {...register('disponivelVenda')} />
                 <span className="text-sm">Disponível para venda</span>
+              </label>
+              <label className="flex items-center gap-3">
+                <input type="checkbox" {...register('personalizado')} />
+                <span className="text-sm">Produto personalizado</span>
               </label>
               <label className="flex items-center gap-3">
                 <input type="checkbox" {...register('ativo')} />

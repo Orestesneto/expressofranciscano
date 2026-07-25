@@ -20,7 +20,7 @@ export default async function AdminPedidosPage() {
 
   const pedidos = await prisma.pedido.findMany({
     where: { statusPagamento: 'PAGO' },
-    include: { itens: true },
+    include: { itens: true, imagens: true },
     orderBy: { paidAt: 'desc' },
   });
 
@@ -68,6 +68,31 @@ export default async function AdminPedidosPage() {
                   </p>
                 ))}
               </div>
+
+              {pedido.imagens.length > 0 && (
+                <div className="mt-5">
+                  <h3 className="text-sm font-bold text-slate-950">Imagens para personalização</h3>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {pedido.imagens.map((imagem, index) => (
+                      <a
+                        key={imagem.id}
+                        href={`/api/admin/imagens/${imagem.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group block overflow-hidden rounded-xl border border-slate-200 bg-white"
+                        title={`Abrir ${imagem.nomeArquivo}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`/api/admin/imagens/${imagem.id}`}
+                          alt={`Personalização ${index + 1}`}
+                          className="h-28 w-28 object-cover transition group-hover:scale-105"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-5 flex justify-end">
                 <OrderStatusActions pedidoId={pedido.id} statusAtual={pedido.statusProducao} />

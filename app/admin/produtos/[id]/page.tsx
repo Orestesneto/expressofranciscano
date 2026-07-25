@@ -45,6 +45,7 @@ export default async function ProdutoDetalhePage({ params }: Params) {
     estoque: produto.estoque,
     estoqueMinimo: produto.estoqueMinimo,
     disponivelVenda: produto.disponivelVenda,
+    personalizado: produto.personalizado,
     ativo: produto.ativo,
   };
 

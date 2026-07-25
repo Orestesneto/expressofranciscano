@@ -34,6 +34,7 @@ export default async function HomePage() {
             descricao={produto.descricao ?? ''}
             preco={Number(produto.preco)}
             estoque={produto.estoque}
+            personalizado={produto.personalizado}
           />
         ))}
       </div>

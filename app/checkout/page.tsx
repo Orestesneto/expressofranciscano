@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Check, Copy, X } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
 import { useCart } from '@/components/cart-context';
 
 const schema = z.object({
@@ -52,6 +53,9 @@ export default function CheckoutPage() {
   const [copied, setCopied] = useState(false);
   const [paymentApproved, setPaymentApproved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customFiles, setCustomFiles] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const hasCustomProduct = items.some((item) => item.personalizado);
 
   const { register, handleSubmit, formState } = useForm<CheckoutForm>({
     resolver: zodResolver(schema),
@@ -88,10 +92,33 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
+      if (hasCustomProduct && customFiles.length === 0) {
+        setError('Envie pelo menos uma imagem para o produto personalizado.');
+        return;
+      }
+      setUploadingImages(customFiles.length > 0);
+      const productIds = items.filter((item) => item.personalizado).map((item) => item.productId);
+      const uploadedImages = await Promise.all(
+        customFiles.slice(0, 10).map(async (file) => {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+          const blob = await upload(`personalizacoes/${Date.now()}-${safeName}`, file, {
+            access: 'private',
+            handleUploadUrl: '/api/uploads/personalizacao',
+            clientPayload: JSON.stringify({ productIds }),
+          });
+          return {
+            url: blob.url,
+            pathname: blob.pathname,
+            nomeArquivo: file.name,
+            contentType: file.type || 'image/jpeg',
+          };
+        }),
+      );
+      setUploadingImages(false);
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer: data, items }),
+        body: JSON.stringify({ customer: data, items, imagens: uploadedImages }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -107,6 +134,7 @@ export default function CheckoutPage() {
     } catch (err) {
       setError('Erro de comunicação com o servidor.');
     } finally {
+      setUploadingImages(false);
       setLoading(false);
     }
   }
@@ -170,6 +198,28 @@ export default function CheckoutPage() {
             <p className="text-sm text-slate-600">Total do pedido</p>
             <p className="mt-2 text-3xl font-semibold">R$ {total.toFixed(2).replace('.', ',')}</p>
           </div>
+          {hasCustomProduct ? (
+            <div className="md:col-span-2 rounded-3xl border border-violet-200 bg-violet-50 p-6">
+              <label className="block text-sm font-bold text-violet-950">Imagens para personalização</label>
+              <p className="mt-1 text-sm text-violet-700">Envie de 1 a 10 imagens em JPG, PNG, WEBP ou HEIC, com até 10 MB cada.</p>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                multiple
+                onChange={(event) => setCustomFiles(Array.from(event.target.files ?? []).slice(0, 10))}
+                className="mt-4 block w-full rounded-2xl border border-violet-200 bg-white p-3 text-sm"
+              />
+              {customFiles.length > 0 ? (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {customFiles.map((file) => (
+                    <p key={`${file.name}-${file.lastModified}`} className="truncate rounded-xl bg-white px-3 py-2 text-xs text-slate-600">
+                      {file.name}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <div className="md:col-span-2 flex flex-col gap-3">
             {error ? (
               <p id="checkout-error" role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
@@ -181,7 +231,7 @@ export default function CheckoutPage() {
               disabled={loading || items.length === 0}
               className="inline-flex items-center justify-center rounded-3xl bg-slate-900 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? 'Gerando pagamento…' : 'Gerar pagamento Pix'}
+              {uploadingImages ? 'Enviando imagens...' : loading ? 'Gerando pagamento…' : 'Gerar pagamento Pix'}
             </button>
           </div>
         </form>
