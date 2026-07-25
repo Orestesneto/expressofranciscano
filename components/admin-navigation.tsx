@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, LogOut, Package, PlusCircle, Store } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, LogOut, Package, PlusCircle, Store } from 'lucide-react';
 import { useState } from 'react';
 
 const tabs = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/pedidos', label: 'Pedidos', icon: ClipboardList },
   { href: '/admin/produtos', label: 'Produtos', icon: Package },
   { href: '/admin/produtos/novo', label: 'Novo produto', icon: PlusCircle, exact: true },
 ];
