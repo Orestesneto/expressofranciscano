@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 
-const adminUser = process.env.ADMIN_USER ?? process.env.ADMIN_EMAIL ?? 'adm';
-const adminPassword = process.env.ADMIN_PASSWORD ?? 'admin123';
+const adminUser = (process.env.ADMIN_USER ?? process.env.ADMIN_EMAIL ?? 'adm').trim();
+const adminPassword = (process.env.ADMIN_PASSWORD ?? 'admin123').trim();
 
 export const ADMIN_SESSION_COOKIE = 'ecri_admin_session';
 

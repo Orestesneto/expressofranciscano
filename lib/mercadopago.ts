@@ -1,7 +1,7 @@
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 
 function getPaymentsClient() {
-  const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
   if (!token) {
     throw new Error('MERCADOPAGO_ACCESS_TOKEN is required in environment variables.');
   }

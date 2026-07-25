@@ -26,6 +26,7 @@ function formatCodigoPedido(id: number) {
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const body = await request.json();
 
   const parseResult = checkoutSchema.safeParse(body);
@@ -138,4 +139,9 @@ export async function POST(request: NextRequest) {
     expirationDate: payment.expirationDate,
     amount: valorTotal,
   });
+  } catch (error) {
+    console.error('Falha ao gerar pagamento Pix', error);
+    const message = error instanceof Error ? error.message : 'Erro interno ao gerar pagamento Pix.';
+    return NextResponse.json({ message }, { status: 500 });
+  }
 }
