@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Administrador {
+  id                    Int                   @id @default(autoincrement())
+  nome                  String
+  email                 String                @unique
+  senhaHash             String
+  perfil                String
+  ativo                 Boolean               @default(true)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  historicos            HistoricoPedido[]
+  movimentacoesEstoque  MovimentacaoEstoque[]
+}
+
+model Equipe {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  descricao String?
+  ativa     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pedidos   Pedido[]
+}
+
+model Categoria {
+  id        Int       @id @default(autoincrement())
+  nome      String    @unique
+  ativa     Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  produtos  Produto[]
+}
+
+model Produto {
+  id              Int               @id @default(autoincrement())
+  categoria       Categoria?        @relation(fields: [categoriaId], references: [id])
+  categoriaId     Int?
+  nome            String
+  descricao       String?
+  imagemUrl       String?
+  preco           Decimal
+  estoque         Int               @default(0)
+  estoqueMinimo   Int               @default(0)
+  disponivelVenda Boolean           @default(true)
+  ativo           Boolean           @default(true)
+  limitePorPedido Int?            
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  variacoes       ProdutoVariacao[]
+  pedidoItens     PedidoItem[]
+  movimentacoes   MovimentacaoEstoque[]
+}
+
+model ProdutoVariacao {
+  id         Int      @id @default(autoincrement())
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  produtoId  Int
+  nome       String
+  valor      Decimal
+  estoque    Int      @default(0)
+  ativo      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  pedidoItens PedidoItem[]
+}
+
+model Pedido {
+  id                    Int              @id @default(autoincrement())
+  codigo                String           @unique
+  nomeCliente           String
+  sobrenomeCliente      String
+  telefone              String?
+  equipe                Equipe?          @relation(fields: [equipeId], references: [id])
+  equipeId              Int?
+  valorTotal            Decimal
+  statusPagamento       String           @default("AGUARDANDO_PAGAMENTO")
+  statusProducao        String           @default("AGUARDANDO_PAGAMENTO")
+  observacaoCliente     String?
+  observacaoAdministrador String?
+  mercadoPagoPaymentId  String?
+  createdAt             DateTime         @default(now())
+  paidAt                DateTime?
+  deliveredAt           DateTime?
+  updatedAt             DateTime         @updatedAt
+  itens                 PedidoItem[]
+  pagamento             Pagamento?
+  historicos            HistoricoPedido[]
+  movimentacoesEstoque  MovimentacaoEstoque[]
+}
+
+model PedidoItem {
+  id            Int      @id @default(autoincrement())
+  pedido        Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId      Int
+  produto       Produto  @relation(fields: [produtoId], references: [id])
+  produtoId     Int
+  variacao      ProdutoVariacao? @relation(fields: [variacaoId], references: [id])
+  variacaoId    Int?
+  nomeProduto   String
+  quantidade    Int
+  valorUnitario Decimal
+  subtotal      Decimal
+}
+
+model Pagamento {
+  id             Int      @id @default(autoincrement())
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId       Int      @unique
+  provedor       String
+  paymentId      String
+  status         String
+  valor          Decimal
+  qrCode         String?
+  qrCodeBase64   String?
+  pixCopiaCola   String?
+  dataExpiracao  DateTime?
+  dadosRetorno   String?
+  movimentacoes  MovimentacaoEstoque[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model HistoricoPedido {
+  id              Int           @id @default(autoincrement())
+  pedido          Pedido        @relation(fields: [pedidoId], references: [id])
+  pedidoId        Int
+  administrador   Administrador @relation(fields: [administradorId], references: [id])
+  administradorId Int
+  statusAnterior  String
+  statusNovo      String
+  descricao       String?
+  createdAt       DateTime      @default(now())
+}
+
+model MovimentacaoEstoque {
+  id              Int               @id @default(autoincrement())
+  produto         Produto           @relation(fields: [produtoId], references: [id])
+  produtoId       Int
+  pedido          Pedido?           @relation(fields: [pedidoId], references: [id])
+  pedidoId        Int?
+  administrador   Administrador?    @relation(fields: [administradorId], references: [id])
+  administradorId Int?
+  pagamento       Pagamento?        @relation(fields: [pagamentoId], references: [id])
+  pagamentoId     Int?
+  tipo            String
+  quantidade      Int
+  estoqueAnterior Int
+  estoqueNovo     Int
+  motivo          String?
+  createdAt       DateTime          @default(now())
+}
