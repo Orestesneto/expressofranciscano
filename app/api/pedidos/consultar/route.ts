@@ -13,7 +13,10 @@ export async function POST(request: NextRequest) {
   }
 
   const pedidos = await prisma.pedido.findMany({
-    where: { telefoneNormalizado: parsed.data.telefone },
+    where: {
+      telefoneNormalizado: parsed.data.telefone,
+      statusPagamento: 'PAGO',
+    },
     include: {
       itens: {
         select: {
