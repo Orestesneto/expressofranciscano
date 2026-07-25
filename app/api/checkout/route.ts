@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       nomeCliente: customer.nome,
       sobrenomeCliente: customer.sobrenome,
       telefone: customer.telefone,
+      equipeNome: customer.equipe,
       valorTotal: valorTotal,
       statusPagamento: 'AGUARDANDO_PAGAMENTO',
       statusProducao: 'AGUARDANDO_PAGAMENTO',
@@ -111,6 +112,7 @@ export async function POST(request: NextRequest) {
     description: `Pedido ${codigo}`,
     externalReference: codigo,
     payerName: `${customer.nome} ${customer.sobrenome}`,
+    notificationUrl: new URL('/api/webhook', request.url).toString(),
   });
 
   await prisma.pagamento.create({

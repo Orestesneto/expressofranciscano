@@ -14,6 +14,7 @@ export interface CreatePixPaymentParams {
   externalReference: string;
   payerName: string;
   payerEmail?: string;
+  notificationUrl?: string;
 }
 
 export interface PixPaymentResult {
@@ -33,6 +34,7 @@ export async function createPixPayment(params: CreatePixPaymentParams): Promise<
       description: params.description,
       payment_method_id: 'pix',
       external_reference: params.externalReference,
+      notification_url: params.notificationUrl,
       payer: {
         email: params.payerEmail ?? 'cliente@ecri.local',
         first_name: params.payerName,

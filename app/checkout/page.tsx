@@ -51,6 +51,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState<PixPayment | null>(null);
   const [copied, setCopied] = useState(false);
+  const [paymentApproved, setPaymentApproved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState } = useForm<CheckoutForm>({
@@ -62,6 +63,26 @@ export default function CheckoutPage() {
       setError('O carrinho está vazio. Adicione algum produto antes de finalizar.');
     }
   }, [items.length]);
+
+  useEffect(() => {
+    if (!payment || paymentApproved) return;
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/pedidos/${encodeURIComponent(payment.codigo)}/status?paymentId=${encodeURIComponent(payment.paymentId)}`,
+          { cache: 'no-store' },
+        );
+        if (!response.ok) return;
+        const result = await response.json();
+        if (result.statusPagamento === 'PAGO') setPaymentApproved(true);
+      } catch {
+        // Uma falha momentânea não fecha o modal; a próxima consulta tenta novamente.
+      }
+    };
+    checkStatus();
+    const interval = window.setInterval(checkStatus, 3000);
+    return () => window.clearInterval(interval);
+  }, [payment, paymentApproved]);
 
   async function onSubmit(data: CheckoutForm) {
     setError(null);
@@ -216,6 +237,38 @@ export default function CheckoutPage() {
             <p className="mt-5 text-center text-sm text-slate-500">
               Após o pagamento, aguarde a confirmação automática do Mercado Pago.
             </p>
+          </div>
+        </div>
+      ) : null}
+
+      {payment && paymentApproved ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] bg-white p-8 text-center shadow-2xl">
+            <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-300 opacity-50" />
+              <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg">
+                <Check size={44} strokeWidth={3} />
+              </span>
+            </div>
+            <h2 className="mt-6 text-2xl font-bold text-slate-950">Pagamento realizado com sucesso!</h2>
+            <p className="mt-3 text-slate-600">
+              Seu pagamento foi confirmado. Clique em OK para visualizar todos os detalhes do pedido.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.open(
+                  `/pedido/${encodeURIComponent(payment.codigo)}?paymentId=${encodeURIComponent(payment.paymentId)}`,
+                  '_blank',
+                  'noopener,noreferrer',
+                );
+                setPaymentApproved(false);
+                setPayment(null);
+              }}
+              className="mt-7 w-full rounded-2xl bg-emerald-600 px-6 py-4 font-bold text-white hover:bg-emerald-700"
+            >
+              OK
+            </button>
           </div>
         </div>
       ) : null}

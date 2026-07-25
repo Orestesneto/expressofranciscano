@@ -79,6 +79,7 @@ model Pedido {
   nomeCliente           String
   sobrenomeCliente      String
   telefone              String?
+  equipeNome            String?
   equipe                Equipe?          @relation(fields: [equipeId], references: [id])
   equipeId              Int?
   valorTotal            Decimal
