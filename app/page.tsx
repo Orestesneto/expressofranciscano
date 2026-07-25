@@ -35,6 +35,7 @@ export default async function HomePage() {
             preco={Number(produto.preco)}
             estoque={produto.estoque}
             personalizado={produto.personalizado}
+            imagemUrl={produto.imagemUrl ?? undefined}
           />
         ))}
       </div>

@@ -10,12 +10,22 @@ interface ProductCardProps {
   preco: number;
   estoque: number;
   personalizado: boolean;
+  imagemUrl?: string;
 }
 
-export default function ProductCard({ id, nome, descricao, preco, estoque, personalizado }: ProductCardProps) {
+export default function ProductCard({
+  id,
+  nome,
+  descricao,
+  preco,
+  estoque,
+  personalizado,
+  imagemUrl,
+}: ProductCardProps) {
   const { addItem } = useCart();
   const [quantidade, setQuantidade] = useState(1);
   const [added, setAdded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   function handleAdd() {
     const quantidadeValida = Math.max(1, Math.min(estoque, quantidade));
@@ -26,7 +36,22 @@ export default function ProductCard({ id, nome, descricao, preco, estoque, perso
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft">
+      {imagemUrl && !imageError ? (
+        <div className="flex aspect-[4/3] w-full items-center justify-center bg-slate-50">
+          {/* A tag nativa mantém compatibilidade com URLs externas no Safari e Android. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imagemUrl}
+            alt={`Imagem do produto ${nome}`}
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageError(true)}
+            className="h-full w-full object-contain"
+          />
+        </div>
+      ) : null}
+      <div className="p-6">
       <div className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Produto</div>
       <h3 className="text-xl font-semibold text-slate-900">{nome}</h3>
       {descricao ? <p className="mt-2 text-sm text-slate-600">{descricao}</p> : null}
@@ -60,6 +85,7 @@ export default function ProductCard({ id, nome, descricao, preco, estoque, perso
             {added ? 'Adicionado ✓' : 'Adicionar'}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
