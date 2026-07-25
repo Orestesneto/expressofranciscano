@@ -112,12 +112,29 @@ export default function CheckoutPage() {
     }
   }
 
+  function onInvalid(fields: typeof formState.errors) {
+    const labels: Record<string, string> = {
+      nome: 'nome',
+      sobrenome: 'sobrenome',
+      equipe: 'equipe',
+    };
+    const missing = Object.keys(fields).map((field) => labels[field] ?? field);
+    setError(
+      missing.length > 0
+        ? `Preencha os campos obrigatórios: ${missing.join(', ')}.`
+        : 'Revise os campos obrigatórios antes de continuar.',
+    );
+    window.setTimeout(() => {
+      document.getElementById('checkout-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+
   return (
     <main className="container py-10">
       <div className="rounded-[2rem] bg-white p-8 shadow-soft">
         <h1 className="text-3xl font-semibold">Finalizar pedido</h1>
         <p className="mt-3 text-slate-600">Preencha os dados para gerar o pagamento Pix.</p>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 grid gap-5 md:grid-cols-2">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="mt-8 grid gap-5 md:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">Nome</label>
             <input className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('nome')} />
@@ -161,7 +178,11 @@ export default function CheckoutPage() {
             <p className="mt-2 text-3xl font-semibold">R$ {total.toFixed(2).replace('.', ',')}</p>
           </div>
           <div className="md:col-span-2 flex flex-col gap-3">
-            {error ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
+            {error ? (
+              <p id="checkout-error" role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {error}
+              </p>
+            ) : null}
             <button
               type="submit"
               disabled={loading || items.length === 0}
