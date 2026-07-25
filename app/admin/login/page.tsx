@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +24,9 @@ export default function AdminLoginPage() {
         setError(result?.message ?? 'Credenciais inválidas.');
         return;
       }
-      router.push('/admin');
+      // Recarrega o documento para que o layout do painel leia o cookie
+      // recém-criado e exiba imediatamente as abas administrativas.
+      window.location.assign('/admin');
     } catch (err) {
       setError('Erro ao se conectar.');
     } finally {
