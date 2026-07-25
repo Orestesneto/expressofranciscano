@@ -141,7 +141,12 @@ export async function POST(request: NextRequest) {
   });
   } catch (error) {
     console.error('Falha ao gerar pagamento Pix', error);
-    const message = error instanceof Error ? error.message : 'Erro interno ao gerar pagamento Pix.';
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'object' && error && 'message' in error
+          ? String(error.message)
+          : 'Erro interno ao gerar pagamento Pix.';
     return NextResponse.json({ message }, { status: 500 });
   }
 }

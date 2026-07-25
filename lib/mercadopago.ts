@@ -36,7 +36,7 @@ export async function createPixPayment(params: CreatePixPaymentParams): Promise<
       external_reference: params.externalReference,
       notification_url: params.notificationUrl,
       payer: {
-        email: params.payerEmail ?? 'cliente@ecri.local',
+        email: params.payerEmail ?? 'cliente@orestesstore.com.br',
         first_name: params.payerName,
       },
     },
