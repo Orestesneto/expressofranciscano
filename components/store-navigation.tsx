@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, ShoppingCart } from 'lucide-react';
+import { Search, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { useCart } from './cart-context';
 
 export default function StoreNavigation() {
@@ -27,6 +27,18 @@ export default function StoreNavigation() {
             }`}
           >
             Produtos
+          </Link>
+          <Link
+            href="/consultar-pedido"
+            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${
+              pathname === '/consultar-pedido'
+                ? 'bg-slate-100 text-slate-950'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Search size={17} />
+            <span className="hidden sm:inline">Consultar meu pedido</span>
+            <span className="sm:hidden">Pedidos</span>
           </Link>
           <Link
             href="/cart"

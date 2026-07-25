@@ -79,6 +79,7 @@ model Pedido {
   nomeCliente           String
   sobrenomeCliente      String
   telefone              String?
+  telefoneNormalizado   String?
   equipeNome            String?
   equipe                Equipe?          @relation(fields: [equipeId], references: [id])
   equipeId              Int?
@@ -96,6 +97,8 @@ model Pedido {
   pagamento             Pagamento?
   historicos            HistoricoPedido[]
   movimentacoesEstoque  MovimentacaoEstoque[]
+
+  @@index([telefoneNormalizado])
 }
 
 model PedidoItem {

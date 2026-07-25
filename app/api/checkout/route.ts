@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       nomeCliente: customer.nome,
       sobrenomeCliente: '',
       telefone: customer.telefone,
+      telefoneNormalizado: customer.telefone?.replace(/\D/g, '') || null,
       equipeNome: customer.equipe,
       valorTotal: valorTotal,
       statusPagamento: 'AGUARDANDO_PAGAMENTO',
