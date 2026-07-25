@@ -7,3 +7,5 @@ prisma/dev.db*
 prisma/sqlite-migrations/
 tsconfig.tsbuildinfo
 .DS_Store
+
+.vercel
