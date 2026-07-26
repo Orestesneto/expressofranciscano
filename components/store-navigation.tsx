@@ -46,10 +46,10 @@ export default function StoreNavigation() {
   return (
     <>
     <header className="fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-      <div className="container flex min-h-16 items-center justify-between gap-2">
-        <Link href="/" className="flex shrink-0 items-center gap-2 font-bold text-slate-950">
-          <ShoppingBag size={21} />
-          <span className="text-sm sm:text-base">ORESTES STORE</span>
+      <div className="container flex min-h-16 items-center justify-between gap-1">
+        <Link href="/" className="flex shrink-0 items-center gap-1.5 font-bold text-slate-950 sm:gap-2">
+          <ShoppingBag className="h-[18px] w-[18px] sm:h-[21px] sm:w-[21px]" />
+          <span className="text-xs sm:text-base">ORESTES STORE</span>
         </Link>
 
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
@@ -63,15 +63,14 @@ export default function StoreNavigation() {
           </Link>
           <Link
             href="/consultar-pedido"
-            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${
+            className={`flex items-center gap-1.5 rounded-xl px-2 py-2 text-[10px] font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
               pathname === '/consultar-pedido'
                 ? 'bg-slate-100 text-slate-950'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <Search size={17} />
-            <span className="hidden md:inline">Consultar meu pedido</span>
-            <span className="sr-only md:hidden">Consultar meu pedido</span>
+            <span>Consultar meu pedido</span>
           </Link>
         </nav>
       </div>
