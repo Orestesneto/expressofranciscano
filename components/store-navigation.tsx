@@ -41,23 +41,21 @@ export default function StoreNavigation() {
             <span className="hidden md:inline">Consultar meu pedido</span>
             <span className="sr-only md:hidden">Consultar meu pedido</span>
           </Link>
-          <Link
-            href="/cart"
-            aria-label={`Carrinho com ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}`}
-            className="flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 sm:px-4"
-          >
-            <ShoppingCart size={18} />
-            Carrinho
-            {itemCount > 0 ? (
-              <span className="flex min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 py-0.5 text-xs font-bold text-slate-950">
-                {itemCount}
-              </span>
-            ) : null}
-          </Link>
         </nav>
       </div>
     </header>
     <div className="h-16" aria-hidden="true" />
+    <Link
+      href="/cart"
+      aria-label={`Carrinho com ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}`}
+      className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-40 flex min-h-16 touch-manipulation items-center gap-3 rounded-full bg-slate-950 px-5 py-4 text-base font-bold text-white shadow-2xl ring-2 ring-white transition hover:bg-slate-700 active:scale-95 sm:bottom-6 sm:right-6"
+    >
+      <ShoppingCart size={24} aria-hidden="true" />
+      <span>Carrinho</span>
+      <span className="flex min-h-7 min-w-7 items-center justify-center rounded-full bg-amber-400 px-2 text-sm font-bold text-slate-950">
+        {itemCount}
+      </span>
+    </Link>
     </>
   );
 }
