@@ -69,6 +69,15 @@ export default async function AdminPedidosPage() {
                 ))}
               </div>
 
+              {pedido.observacaoCliente ? (
+                <div className="mt-5 rounded-2xl border border-violet-200 bg-violet-50 p-4">
+                  <h3 className="text-sm font-bold text-violet-950">Instruções do cliente</h3>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-violet-900">
+                    {pedido.observacaoCliente}
+                  </p>
+                </div>
+              ) : null}
+
               {pedido.imagens.length > 0 && (
                 <div className="mt-5">
                   <h3 className="text-sm font-bold text-slate-950">Imagens para personalização</h3>

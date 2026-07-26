@@ -96,6 +96,10 @@ export default function CheckoutPage() {
         setError('Envie pelo menos uma imagem para o produto personalizado.');
         return;
       }
+      if (hasCustomProduct && !data.observacao?.trim()) {
+        setError('Informe na observação qual item será personalizado e quais imagens devem ser usadas.');
+        return;
+      }
       setUploadingImages(customFiles.length > 0);
       const productIds = items.filter((item) => item.personalizado).map((item) => item.productId);
       const uploadedImages = await Promise.all(
@@ -190,9 +194,28 @@ export default function CheckoutPage() {
             <label className="mb-2 block text-sm font-semibold text-slate-700">Telefone / WhatsApp</label>
             <input className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('telefone')} />
           </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Observação</label>
-            <textarea className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" rows={4} {...register('observacao')} />
+          <div className={hasCustomProduct ? 'md:col-span-2' : undefined}>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              {hasCustomProduct ? 'Instruções para personalização' : 'Observação'}
+              {hasCustomProduct ? <span className="ml-1 text-red-600">*</span> : null}
+            </label>
+            {hasCustomProduct ? (
+              <p className="mb-2 text-sm text-violet-700">
+                Informe qual item será personalizado e o nome de cada imagem que deverá ser usada.
+                Itens personalizados: {items.filter((item) => item.personalizado).map((item) => item.nome).join(', ')}.
+              </p>
+            ) : null}
+            <textarea
+              className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3"
+              rows={hasCustomProduct ? 5 : 4}
+              placeholder={
+                hasCustomProduct
+                  ? 'Ex.: Caneca — usar IMG_1643.png na frente. Botton — usar foto-familia.jpg.'
+                  : 'Informações adicionais sobre o pedido'
+              }
+              aria-required={hasCustomProduct}
+              {...register('observacao')}
+            />
           </div>
           <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50 p-6">
             <p className="text-sm text-slate-600">Total do pedido</p>
