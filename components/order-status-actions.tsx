@@ -37,6 +37,8 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
 
   async function updateStatus() {
     if (action?.status === 'ENTREGUE' && !window.confirm('Confirma a entrega deste pedido?')) return;
+    const shouldOpenWhatsApp = action?.status === 'EM_PRODUCAO';
+    const whatsappWindow = shouldOpenWhatsApp ? window.open('', '_blank') : null;
     setLoading(true);
     setError(null);
     try {
@@ -47,11 +49,31 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
       });
       const result = await response.json();
       if (!response.ok) {
+        whatsappWindow?.close();
         setError(result.message ?? 'Não foi possível atualizar o pedido.');
         return;
       }
+
+      if (shouldOpenWhatsApp) {
+        const telefone = String(result.pedido?.telefone ?? '').replace(/\D/g, '');
+        if (!telefone) {
+          whatsappWindow?.close();
+          window.alert('A produção foi iniciada, mas o cliente não informou um telefone.');
+        } else {
+          const telefoneComPais = telefone.startsWith('55') ? telefone : `55${telefone}`;
+          const mensagem = `Olá ${result.pedido.nomeCliente}, o seu produto de número #${result.pedido.codigo} iniciou o processo de produção! Em breve estará disponível para retirada!`;
+          const whatsappUrl = `https://wa.me/${telefoneComPais}?text=${encodeURIComponent(mensagem)}`;
+
+          if (whatsappWindow) {
+            whatsappWindow.location.href = whatsappUrl;
+          } else {
+            window.location.href = whatsappUrl;
+          }
+        }
+      }
       router.refresh();
     } catch {
+      whatsappWindow?.close();
       setError('Erro de comunicação com o servidor.');
     } finally {
       setLoading(false);
