@@ -4,12 +4,26 @@ import { getPayment } from '@/lib/mercadopago';
 export async function syncMercadoPagoPayment(paymentId: string) {
   const payment = await getPayment(paymentId);
   const externalReference = payment.external_reference;
-  if (!externalReference) throw new Error('Referência externa ausente');
 
-  const pedido = await prisma.pedido.findFirst({
-    where: { codigo: externalReference },
-    include: { itens: true },
+  const pagamentoExistente = await prisma.pagamento.findFirst({
+    where: { paymentId: String(payment.id) },
+    select: { pedidoId: true },
   });
+
+  let pedido = pagamentoExistente
+    ? await prisma.pedido.findUnique({
+        where: { id: pagamentoExistente.pedidoId },
+        include: { itens: true },
+      })
+    : null;
+
+  if (!pedido && externalReference) {
+    pedido = await prisma.pedido.findUnique({
+      where: { codigo: externalReference },
+      include: { itens: true },
+    });
+  }
+
   if (!pedido) throw new Error('Pedido não encontrado');
 
   const status = String(payment.status).toUpperCase();

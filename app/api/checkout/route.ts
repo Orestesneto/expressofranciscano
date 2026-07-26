@@ -29,7 +29,7 @@ const checkoutSchema = z.object({
 });
 
 function formatCodigoPedido(id: number) {
-  return `ECRI-${String(id).padStart(4, '0')}`;
+  return `EJCDAGUIA-${String(id).padStart(4, '0')}`;
 }
 
 export async function POST(request: NextRequest) {
