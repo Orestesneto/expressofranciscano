@@ -208,16 +208,30 @@ export default function CheckoutPage() {
                 accept="image/*,.heic,.heif"
                 multiple
                 onChange={(event) => {
-                  const files = Array.from(event.target.files ?? []);
-                  const oversized = files.find((file) => file.size > 10 * 1024 * 1024);
+                  const newFiles = Array.from(event.target.files ?? []);
+                  const oversized = newFiles.find((file) => file.size > 10 * 1024 * 1024);
                   if (oversized) {
                     setError(`A imagem "${oversized.name}" ultrapassa o limite de 10 MB.`);
                     event.target.value = '';
-                    setCustomFiles([]);
+                    return;
+                  }
+                  const combined = [...customFiles, ...newFiles].filter(
+                    (file, index, files) =>
+                      files.findIndex(
+                        (candidate) =>
+                          candidate.name === file.name &&
+                          candidate.size === file.size &&
+                          candidate.lastModified === file.lastModified,
+                      ) === index,
+                  );
+                  if (combined.length > 10) {
+                    setError('Você pode enviar no máximo 10 imagens.');
+                    event.target.value = '';
                     return;
                   }
                   setError(null);
-                  setCustomFiles(files.slice(0, 10));
+                  setCustomFiles(combined);
+                  event.target.value = '';
                 }}
                 className="sr-only"
               />
@@ -225,7 +239,7 @@ export default function CheckoutPage() {
                 htmlFor="imagens-personalizacao"
                 className="mt-4 flex min-h-14 cursor-pointer touch-manipulation items-center justify-center rounded-2xl bg-violet-700 px-5 py-4 text-center text-sm font-bold text-white shadow-sm transition active:scale-[0.99]"
               >
-                Selecionar imagens da galeria ou câmera
+                {customFiles.length > 0 ? 'Adicionar mais imagens' : 'Selecionar imagens da galeria ou câmera'}
               </label>
               <p className="mt-2 text-xs text-violet-700">
                 Compatível com Android, iPhone e iPad. Você poderá usar a câmera ou escolher fotos já salvas.
@@ -236,10 +250,25 @@ export default function CheckoutPage() {
                     {customFiles.length} {customFiles.length === 1 ? 'imagem selecionada' : 'imagens selecionadas'}
                   </p>
                   <div className="grid gap-2 sm:grid-cols-2">
-                  {customFiles.map((file) => (
-                    <p key={`${file.name}-${file.lastModified}`} className="truncate rounded-xl bg-white px-3 py-2 text-xs text-slate-600">
-                      {file.name}
-                    </p>
+                  {customFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.size}-${file.lastModified}`}
+                      className="flex min-h-12 items-center gap-2 rounded-xl bg-white px-3 py-2"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-xs text-slate-600">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomFiles((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                          setError(null);
+                        }}
+                        aria-label={`Remover imagem ${file.name}`}
+                        className="inline-flex min-h-10 shrink-0 touch-manipulation items-center gap-1 rounded-lg bg-red-50 px-3 text-xs font-bold text-red-700 active:bg-red-100"
+                      >
+                        <X size={15} aria-hidden="true" />
+                        Remover
+                      </button>
+                    </div>
                   ))}
                   </div>
                 </div>
