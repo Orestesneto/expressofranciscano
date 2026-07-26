@@ -37,7 +37,8 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
 
   async function updateStatus() {
     if (action?.status === 'ENTREGUE' && !window.confirm('Confirma a entrega deste pedido?')) return;
-    const shouldOpenWhatsApp = action?.status === 'EM_PRODUCAO';
+    const shouldOpenWhatsApp =
+      action?.status === 'EM_PRODUCAO' || action?.status === 'PRONTO_PARA_RETIRADA';
     const whatsappWindow = shouldOpenWhatsApp ? window.open('', '_blank') : null;
     setLoading(true);
     setError(null);
@@ -58,10 +59,13 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
         const telefone = String(result.pedido?.telefone ?? '').replace(/\D/g, '');
         if (!telefone) {
           whatsappWindow?.close();
-          window.alert('A produção foi iniciada, mas o cliente não informou um telefone.');
+          window.alert('O status foi atualizado, mas o cliente não informou um telefone.');
         } else {
           const telefoneComPais = telefone.startsWith('55') ? telefone : `55${telefone}`;
-          const mensagem = `Olá ${result.pedido.nomeCliente}, o seu produto de número #${result.pedido.codigo} iniciou o processo de produção! Em breve estará disponível para retirada!`;
+          const mensagem =
+            action?.status === 'PRONTO_PARA_RETIRADA'
+              ? `Olá ${result.pedido.nomeCliente}, o seu pedido está pronto para retirada.`
+              : `Olá ${result.pedido.nomeCliente}, o seu produto de número #${result.pedido.codigo} iniciou o processo de produção! Em breve estará disponível para retirada!`;
           const whatsappUrl = `https://wa.me/${telefoneComPais}?text=${encodeURIComponent(mensagem)}`;
 
           if (whatsappWindow) {
