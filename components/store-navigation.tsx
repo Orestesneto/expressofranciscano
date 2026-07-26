@@ -12,17 +12,18 @@ export default function StoreNavigation() {
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-      <div className="container flex min-h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 font-bold text-slate-950">
+    <>
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+      <div className="container flex min-h-16 items-center justify-between gap-2">
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-bold text-slate-950">
           <ShoppingBag size={21} />
-          <span>ORESTES STORE</span>
+          <span className="text-sm sm:text-base">ORESTES STORE</span>
         </Link>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           <Link
             href="/"
-            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+            className={`hidden rounded-xl px-4 py-2 text-sm font-semibold sm:block ${
               pathname === '/' ? 'bg-slate-100 text-slate-950' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -37,16 +38,13 @@ export default function StoreNavigation() {
             }`}
           >
             <Search size={17} />
-            <span className="hidden sm:inline">Consultar meu pedido</span>
-            <span className="sm:hidden">Pedidos</span>
+            <span className="hidden md:inline">Consultar meu pedido</span>
+            <span className="sr-only md:hidden">Consultar meu pedido</span>
           </Link>
           <Link
             href="/cart"
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold ${
-              pathname === '/cart' || pathname === '/checkout'
-                ? 'bg-slate-950 text-white'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
+            aria-label={`Carrinho com ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}`}
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 sm:px-4"
           >
             <ShoppingCart size={18} />
             Carrinho
@@ -59,5 +57,7 @@ export default function StoreNavigation() {
         </nav>
       </div>
     </header>
+    <div className="h-16" aria-hidden="true" />
+    </>
   );
 }
