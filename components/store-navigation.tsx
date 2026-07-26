@@ -3,11 +3,43 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Search, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useCart } from './cart-context';
 
 export default function StoreNavigation() {
   const pathname = usePathname();
   const { itemCount } = useCart();
+  const [cartBottom, setCartBottom] = useState(16);
+
+  useEffect(() => {
+    let animationFrame = 0;
+
+    function updateCartPosition() {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(() => {
+        const footer = document.getElementById('site-footer');
+        const baseSpacing = window.innerWidth >= 640 ? 24 : 16;
+        if (!footer) {
+          setCartBottom(baseSpacing);
+          return;
+        }
+
+        const footerTop = footer.getBoundingClientRect().top;
+        const visibleFooterHeight = Math.max(0, window.innerHeight - footerTop);
+        setCartBottom(baseSpacing + visibleFooterHeight);
+      });
+    }
+
+    updateCartPosition();
+    window.addEventListener('scroll', updateCartPosition, { passive: true });
+    window.addEventListener('resize', updateCartPosition);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener('scroll', updateCartPosition);
+      window.removeEventListener('resize', updateCartPosition);
+    };
+  }, []);
 
   if (pathname.startsWith('/admin')) return null;
 
@@ -48,7 +80,8 @@ export default function StoreNavigation() {
     <Link
       href="/cart"
       aria-label={`Carrinho com ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}`}
-      className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-40 flex min-h-16 touch-manipulation items-center gap-3 rounded-full bg-slate-950 px-5 py-4 text-base font-bold text-white shadow-2xl ring-2 ring-white transition hover:bg-slate-700 active:scale-95 sm:bottom-6 sm:right-6"
+      style={{ bottom: `calc(${cartBottom}px + env(safe-area-inset-bottom))` }}
+      className="fixed right-4 z-40 flex min-h-16 touch-manipulation items-center gap-3 rounded-full bg-slate-950 px-5 py-4 text-base font-bold text-white shadow-2xl ring-2 ring-white transition-[bottom,background-color,transform] duration-150 hover:bg-slate-700 active:scale-95 sm:right-6"
     >
       <ShoppingCart size={24} aria-hidden="true" />
       <span>Carrinho</span>

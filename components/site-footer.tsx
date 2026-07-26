@@ -2,7 +2,7 @@ import { MessageCircle } from 'lucide-react';
 
 export default function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-slate-200 bg-white">
+    <footer id="site-footer" className="mt-auto border-t border-slate-200 bg-white">
       <div className="container flex flex-col items-center gap-2 px-4 py-8 text-center text-sm text-slate-600">
         <p>Copyright © 2026. Todos os direitos reservados.</p>
         <p>Desenvolvido por Orestes Pereira</p>
