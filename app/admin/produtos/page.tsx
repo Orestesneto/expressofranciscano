@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { isValidAdminSession } from '@/lib/auth';
+import ProductList from './product-list';
 
 async function getProdutos() {
   return prisma.produto.findMany({
@@ -38,31 +39,17 @@ export default async function AdminProdutosPage() {
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {produtos.map((produto) => (
-          <div key={produto.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">{produto.nome}</h2>
-                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-orange-700">{produto.categoria?.nome ?? 'Sem classificação'}</p>
-              </div>
-              <div className="grid gap-2 text-sm text-slate-700 md:text-right">
-                <span>Preço: R$ {Number(produto.preco).toFixed(2).replace('.', ',')}</span>
-                <span>Arrecadado: {produto.quantidadeArrecadada} {produto.unidade}</span>
-                <span>Meta: {produto.metaQuantidade} {produto.unidade}</span>
-                <span>Disponível: {produto.disponivelVenda ? 'Sim' : 'Não'}</span>
-                <span>Status: {produto.ativo ? 'Ativo' : 'Inativo'}</span>
-                {produto.quantidadeArrecadada >= produto.metaQuantidade ? <span className="font-semibold text-emerald-700">Meta atingida</span> : null}
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link href={`/admin/produtos/${produto.id}`} className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-                Editar
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
+      <ProductList produtos={produtos.map((produto) => ({
+        id: produto.id,
+        nome: produto.nome,
+        categoria: produto.categoria?.nome ?? 'Sem classificação',
+        preco: Number(produto.preco),
+        quantidadeArrecadada: produto.quantidadeArrecadada,
+        metaQuantidade: produto.metaQuantidade,
+        unidade: produto.unidade,
+        disponivelVenda: produto.disponivelVenda,
+        ativo: produto.ativo,
+      }))} />
     </main>
   );
 }
