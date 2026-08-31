@@ -24,13 +24,15 @@ export default async function PedidoConfirmadoPage({
   });
   if (!pedido) notFound();
 
+  const numeroPedido = pedido.codigo.match(/\d+$/)?.[0] ?? pedido.codigo;
+
   return (
     <main className="container py-10">
       <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-8 shadow-soft sm:p-10">
         <div className="flex flex-col items-center text-center">
           <CheckCircle2 className="text-emerald-500" size={64} />
           <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Pagamento confirmado</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-950">Pedido #{pedido.codigo}</h1>
+          <h1 className="mt-2 text-3xl font-bold text-slate-950">Pedido #EXPRESSO-{numeroPedido}</h1>
           <p className="mt-3 text-slate-600">Seu pedido foi recebido e seguirá para produção.</p>
         </div>
 
