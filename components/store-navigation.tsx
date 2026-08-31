@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { MapPinPlus, Search, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { Search, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCart } from './cart-context';
 
@@ -81,18 +81,6 @@ export default function StoreNavigation() {
           >
             <Search size={17} />
             <span>Quem já nos ajudou</span>
-          </Link>
-          <Link
-            href="/pontos-recolhimento"
-            aria-label="Cadastrar ponto de recolhimento"
-            className={`flex items-center gap-1.5 rounded-xl px-2 py-2 text-[10px] font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
-              pathname === '/pontos-recolhimento'
-                ? 'bg-orange-500 text-white'
-                : 'text-orange-100 hover:bg-orange-600'
-            }`}
-          >
-            <MapPinPlus size={17} />
-            <span className="hidden md:inline">Ponto de recolhimento</span>
           </Link>
         </nav>
       </div>
