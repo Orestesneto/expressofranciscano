@@ -42,6 +42,7 @@ export default async function ProdutoDetalhePage({ params }: Params) {
     descricao: produto.descricao ?? '',
     imagemUrl: produto.imagemUrl ?? '',
     preco: Number(produto.preco),
+    unidade: produto.unidade,
     estoque: produto.estoque,
     estoqueMinimo: produto.estoqueMinimo,
     disponivelVenda: produto.disponivelVenda,
@@ -51,30 +52,10 @@ export default async function ProdutoDetalhePage({ params }: Params) {
 
   return (
     <main className="container py-16">
-      <div className="mx-auto max-w-5xl rounded-[2rem] bg-white p-10 shadow-soft">
+      <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-8 shadow-soft sm:p-10">
         <h1 className="text-3xl font-semibold">Editar produto</h1>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
-          <div>
-            <ProdutoEditar produto={produtoSerializado} />
-          </div>
-          <aside className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-            <div className="space-y-5">
-              <div>
-                <p className="text-sm text-slate-600">Quantidade de itens necessários</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">{produto.metaQuantidade} {produto.unidade}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Disponibilidade</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">
-                  {produto.ativo && produto.disponivelVenda && produto.estoque > 0 ? 'Disponível' : 'Esgotado / indisponível'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Estoque mínimo</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">{produto.estoqueMinimo}</p>
-              </div>
-            </div>
-          </aside>
+        <div className="mt-8">
+          <ProdutoEditar produto={produtoSerializado} />
         </div>
       </div>
     </main>

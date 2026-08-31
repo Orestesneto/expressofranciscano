@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,26 +23,14 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-interface Movimentacao {
-  id: number;
-  tipo: string;
-  quantidade: number;
-  estoqueAnterior: number;
-  estoqueNovo: number;
-  motivo: string | null;
-  createdAt: string;
-}
-
 export default function ProdutoEditar({ produto }: { produto: any }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const { register, handleSubmit, formState, reset, watch } = useForm<FormValues>({
+  const { register, handleSubmit, formState, reset } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       nome: produto.nome,
@@ -72,24 +60,6 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
       ativo: produto.ativo,
     });
   }, [produto, reset]);
-
-  const estoque = watch('estoque');
-  const statusBadge = useMemo(() => (estoque > 0 ? 'Disponível' : 'Esgotado'), [estoque]);
-
-  useEffect(() => {
-    async function loadHistory() {
-      setLoadingHistory(true);
-      try {
-        const response = await fetch(`/api/admin/produtos/${produto.id}/historico`);
-        if (!response.ok) return;
-        const data = await response.json();
-        setMovimentacoes(data.movimentacoes ?? []);
-      } finally {
-        setLoadingHistory(false);
-      }
-    }
-    loadHistory();
-  }, [produto.id]);
 
   async function onSubmit(data: FormValues) {
     setLoading(true);
@@ -124,11 +94,6 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
         ajusteQuantidade: undefined,
         ajusteMotivo: '',
       });
-      const historyResponse = await fetch(`/api/admin/produtos/${produto.id}/historico`);
-      if (historyResponse.ok) {
-        const historyData = await historyResponse.json();
-        setMovimentacoes(historyData.movimentacoes ?? []);
-      }
       setSuccess(`Produto atualizado. Meta definida em ${result.produto.metaQuantidade} ${result.produto.unidade}.`);
     } catch (err) {
       setError('Erro de comunicação.');
@@ -194,16 +159,12 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
           />
           <p className="mt-2 text-sm text-red-600">{formState.errors.unidade?.message}</p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Estoque mínimo</label>
-            <input type="number" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('estoqueMinimo', { valueAsNumber: true })} />
-            <p className="mt-2 text-sm text-red-600">{formState.errors.estoqueMinimo?.message}</p>
-          </div>
-          <div className="grid gap-2 md:grid-cols-2">
+        <div className="rounded-3xl border border-orange-200 bg-orange-50 p-5">
+          <p className="mb-4 text-sm font-semibold text-slate-700">Opções do produto</p>
+          <div className="grid gap-4 sm:grid-cols-3">
             <label className="flex items-center gap-3">
               <input type="checkbox" {...register('disponivelVenda')} />
-              <span className="text-sm">Disponível para venda</span>
+              <span className="text-sm">Exibir na loja</span>
             </label>
             <label className="flex items-center gap-3">
               <input type="checkbox" {...register('personalizado')} />
@@ -213,20 +174,6 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
               <input type="checkbox" {...register('ativo')} />
               <span className="text-sm">Ativo</span>
             </label>
-          </div>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <p className="text-sm text-slate-600">Status do estoque</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{estoque > 0 ? 'Disponível' : 'Esgotado'}</p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Ajuste de quantidade</label>
-            <input type="number" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('ajusteQuantidade', { valueAsNumber: true })} />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Motivo do ajuste</label>
-            <input className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('ajusteMotivo')} />
           </div>
         </div>
         {error ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
@@ -244,37 +191,6 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
         </button>
       </form>
 
-      <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">Histórico de estoque</h2>
-            <p className="text-sm text-slate-600">Registros de entrada, venda e ajustes.</p>
-          </div>
-          {loadingHistory ? <span className="text-sm text-slate-500">Carregando...</span> : null}
-        </div>
-        {movimentacoes.length === 0 ? (
-          <p className="text-sm text-slate-600">Nenhuma movimentação registrada ainda.</p>
-        ) : (
-          <div className="space-y-4">
-            {movimentacoes.map((mov) => (
-              <div key={mov.id} className="rounded-3xl border border-slate-200 bg-white p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{mov.tipo}</p>
-                    <p className="text-sm text-slate-500">{new Date(mov.createdAt).toLocaleString('pt-BR')}</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">{mov.quantidade > 0 ? `+${mov.quantidade}` : mov.quantidade}</span>
-                </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                  <p className="text-sm text-slate-600">Estoque anterior: <span className="font-semibold text-slate-900">{mov.estoqueAnterior}</span></p>
-                  <p className="text-sm text-slate-600">Estoque novo: <span className="font-semibold text-slate-900">{mov.estoqueNovo}</span></p>
-                  <p className="text-sm text-slate-600">Motivo: <span className="font-semibold text-slate-900">{mov.motivo || 'Sem motivo'}</span></p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </>
   );
 }
