@@ -179,7 +179,7 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
             <p className="mt-2 text-sm text-red-600">{formState.errors.preco?.message}</p>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Itens necessários</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Quantidade de itens necessários</label>
             <input type="number" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('estoque', { valueAsNumber: true })} />
             <p className="mt-2 text-sm text-red-600">{formState.errors.estoque?.message}</p>
             <p className="mt-2 text-sm text-slate-600">Este número será exibido como a meta do produto na loja.</p>
