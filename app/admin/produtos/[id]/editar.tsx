@@ -12,13 +12,14 @@ const schema = z.object({
   imagemUrl: z.union([z.string().url(), z.literal('')]).optional(),
   preco: z.number().positive(),
   unidade: z.string().trim().min(1, 'Informe a unidade de medida'),
-  estoque: z.number().int().min(0),
-  estoqueMinimo: z.number().int().min(0),
+  metaQuantidade: z.number().int().min(0, 'Informe uma quantidade válida'),
+  quantidadeArrecadada: z.number().int().min(0, 'Informe uma quantidade válida'),
   disponivelVenda: z.boolean(),
   personalizado: z.boolean(),
   ativo: z.boolean(),
-  ajusteQuantidade: z.number().int().optional(),
-  ajusteMotivo: z.string().optional(),
+}).refine((data) => data.quantidadeArrecadada <= data.metaQuantidade, {
+  message: 'A quantidade arrecadada não pode ser maior que a quantidade necessária',
+  path: ['quantidadeArrecadada'],
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -38,8 +39,8 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
       imagemUrl: produto.imagemUrl ?? '',
       preco: Number(produto.preco),
       unidade: produto.unidade ?? 'unidade',
-      estoque: produto.estoque,
-      estoqueMinimo: produto.estoqueMinimo,
+      metaQuantidade: produto.metaQuantidade,
+      quantidadeArrecadada: produto.quantidadeArrecadada,
       disponivelVenda: produto.disponivelVenda,
       personalizado: produto.personalizado,
       ativo: produto.ativo,
@@ -53,8 +54,8 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
       imagemUrl: produto.imagemUrl ?? '',
       preco: Number(produto.preco),
       unidade: produto.unidade ?? 'unidade',
-      estoque: produto.estoque,
-      estoqueMinimo: produto.estoqueMinimo,
+      metaQuantidade: produto.metaQuantidade,
+      quantidadeArrecadada: produto.quantidadeArrecadada,
       disponivelVenda: produto.disponivelVenda,
       personalizado: produto.personalizado,
       ativo: produto.ativo,
@@ -86,13 +87,11 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
         imagemUrl: result.produto.imagemUrl ?? '',
         preco: Number(result.produto.preco),
         unidade: result.produto.unidade ?? 'unidade',
-        estoque: result.produto.estoque,
-        estoqueMinimo: result.produto.estoqueMinimo,
+        metaQuantidade: result.produto.metaQuantidade,
+        quantidadeArrecadada: result.produto.quantidadeArrecadada,
         disponivelVenda: result.produto.disponivelVenda,
         personalizado: result.produto.personalizado,
         ativo: result.produto.ativo,
-        ajusteQuantidade: undefined,
-        ajusteMotivo: '',
       });
       setSuccess(`Produto atualizado. Meta definida em ${result.produto.metaQuantidade} ${result.produto.unidade}.`);
     } catch (err) {
@@ -137,7 +136,7 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
           <label className="mb-2 block text-sm font-semibold text-slate-700">Imagem URL</label>
           <input className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('imagemUrl')} />
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-3">
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">Preço</label>
             <input type="number" step="0.01" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('preco', { valueAsNumber: true })} />
@@ -145,9 +144,13 @@ export default function ProdutoEditar({ produto }: { produto: any }) {
           </div>
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">Quantidade de itens necessários</label>
-            <input type="number" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('estoque', { valueAsNumber: true })} />
-            <p className="mt-2 text-sm text-red-600">{formState.errors.estoque?.message}</p>
-            <p className="mt-2 text-sm text-slate-600">Este número será exibido como a meta do produto na loja.</p>
+            <input type="number" min="0" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('metaQuantidade', { valueAsNumber: true })} />
+            <p className="mt-2 text-sm text-red-600">{formState.errors.metaQuantidade?.message}</p>
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Quantidade já arrecadada</label>
+            <input type="number" min="0" className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3" {...register('quantidadeArrecadada', { valueAsNumber: true })} />
+            <p className="mt-2 text-sm text-red-600">{formState.errors.quantidadeArrecadada?.message}</p>
           </div>
         </div>
         <div>

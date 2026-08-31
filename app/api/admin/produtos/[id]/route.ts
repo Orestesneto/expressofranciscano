@@ -9,13 +9,14 @@ const updateProdutoSchema = z.object({
   imagemUrl: z.union([z.string().url(), z.literal('')]).optional(),
   preco: z.number().positive(),
   unidade: z.string().trim().min(1).max(30),
-  estoque: z.number().int().min(0),
-  estoqueMinimo: z.number().int().min(0),
+  metaQuantidade: z.number().int().min(0),
+  quantidadeArrecadada: z.number().int().min(0),
   disponivelVenda: z.boolean(),
   personalizado: z.boolean(),
   ativo: z.boolean(),
-  ajusteQuantidade: z.number().int().optional(),
-  ajusteMotivo: z.string().optional(),
+}).refine((data) => data.quantidadeArrecadada <= data.metaQuantidade, {
+  message: 'A quantidade arrecadada não pode ser maior que a quantidade necessária',
+  path: ['quantidadeArrecadada'],
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -36,27 +37,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 
   const data = parseResult.data;
-  let estoqueFinal = data.estoque;
-  const ajustes: Array<{ tipo: string; quantidade: number; motivo: string }> = [];
-
-  if (typeof data.ajusteQuantidade === 'number' && data.ajusteQuantidade !== 0) {
-    estoqueFinal = produto.estoque + data.ajusteQuantidade;
-    ajustes.push({
-      tipo: 'AJUSTE',
-      quantidade: data.ajusteQuantidade,
-      motivo: data.ajusteMotivo ?? 'Ajuste manual de estoque',
-    });
-  } else if (data.estoque !== produto.estoque) {
-    ajustes.push({
-      tipo: 'AJUSTE',
-      quantidade: data.estoque - produto.estoque,
-      motivo: data.ajusteMotivo ?? 'Correção de inventário',
-    });
-  }
-
-  if (estoqueFinal < 0) {
-    return NextResponse.json({ message: 'O ajuste não pode deixar o estoque negativo.' }, { status: 400 });
-  }
+  const estoqueFinal = data.metaQuantidade - data.quantidadeArrecadada;
+  const diferencaEstoque = estoqueFinal - produto.estoque;
 
   const updatedProduct = await prisma.$transaction(async (tx) => {
     const updated = await tx.produto.update({
@@ -68,23 +50,23 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         preco: data.preco,
         unidade: data.unidade,
         estoque: estoqueFinal,
-        metaQuantidade: estoqueFinal,
-        estoqueMinimo: data.estoqueMinimo,
+        metaQuantidade: data.metaQuantidade,
+        quantidadeArrecadada: data.quantidadeArrecadada,
         disponivelVenda: data.disponivelVenda,
         personalizado: data.personalizado,
         ativo: data.ativo,
       },
     });
 
-    if (ajustes.length > 0) {
+    if (diferencaEstoque !== 0 || data.quantidadeArrecadada !== produto.quantidadeArrecadada) {
       await tx.movimentacaoEstoque.create({
         data: {
           produtoId,
-          tipo: ajustes[0].quantidade > 0 ? 'ENTRADA' : 'AJUSTE',
-          quantidade: ajustes[0].quantidade,
+          tipo: 'AJUSTE',
+          quantidade: diferencaEstoque,
           estoqueAnterior: produto.estoque,
           estoqueNovo: estoqueFinal,
-          motivo: ajustes[0].motivo,
+          motivo: 'Meta e quantidade arrecadada atualizadas manualmente',
         },
       });
     }
