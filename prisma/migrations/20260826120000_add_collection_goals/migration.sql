@@ -1,0 +1,7 @@
+ALTER TABLE "Produto"
+ADD COLUMN "unidade" TEXT NOT NULL DEFAULT 'unidade',
+ADD COLUMN "metaQuantidade" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "quantidadeArrecadada" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "Pedido"
+ADD COLUMN "formaContribuicao" TEXT NOT NULL DEFAULT 'PIX';

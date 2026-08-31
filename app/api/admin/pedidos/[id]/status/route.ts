@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, isValidAdminSession } from '@/lib/auth';
+import { addOrderToCollection } from '@/lib/collection';
 
 const schema = z.object({
-  status: z.enum(['EM_PRODUCAO', 'PRONTO_PARA_RETIRADA', 'ENTREGUE']),
+  status: z.enum(['RECEBIDO_NO_PONTO', 'NAO_RECEBIDO', 'EM_PRODUCAO', 'PRONTO_PARA_RETIRADA', 'ENTREGUE']),
 });
 
 const transitions: Record<string, string> = {
@@ -22,12 +23,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ message: 'Situação inválida' }, { status: 400 });
 
-  const pedido = await prisma.pedido.findUnique({ where: { id: Number(params.id) } });
+  const pedido = await prisma.pedido.findUnique({ where: { id: Number(params.id) }, include: { itens: true } });
   if (!pedido) return NextResponse.json({ message: 'Pedido não encontrado' }, { status: 404 });
-  if (pedido.statusPagamento !== 'PAGO') {
+  const confirmingDelivery = parsed.data.status === 'RECEBIDO_NO_PONTO' && pedido.statusPagamento === 'AGUARDANDO_ENTREGA';
+  const rejectingDelivery = parsed.data.status === 'NAO_RECEBIDO' && pedido.statusPagamento === 'AGUARDANDO_ENTREGA';
+  if (pedido.statusPagamento !== 'PAGO' && !confirmingDelivery && !rejectingDelivery) {
     return NextResponse.json({ message: 'O pedido ainda não está pago.' }, { status: 400 });
   }
-  if (transitions[pedido.statusProducao] !== parsed.data.status) {
+  if (!confirmingDelivery && !rejectingDelivery && transitions[pedido.statusProducao] !== parsed.data.status) {
     return NextResponse.json({ message: 'Esta mudança de situação não é permitida.' }, { status: 400 });
   }
 
@@ -44,10 +47,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   });
 
   const updated = await prisma.$transaction(async (tx) => {
+    if (confirmingDelivery) {
+      await addOrderToCollection(tx, pedido);
+    }
     const result = await tx.pedido.update({
       where: { id: pedido.id },
       data: {
-        statusProducao: parsed.data.status,
+        statusPagamento: confirmingDelivery ? 'PAGO' : rejectingDelivery ? 'CANCELADO' : undefined,
+        paidAt: confirmingDelivery ? new Date() : undefined,
+        statusProducao: confirmingDelivery ? 'ENTREGUE_NO_PONTO' : rejectingDelivery ? 'NAO_RECEBIDO' : parsed.data.status,
         deliveredAt: parsed.data.status === 'ENTREGUE' ? new Date() : undefined,
       },
     });
@@ -56,8 +64,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         pedidoId: pedido.id,
         administradorId: administrador.id,
         statusAnterior: pedido.statusProducao,
-        statusNovo: parsed.data.status,
-        descricao: `Situação alterada para ${parsed.data.status}`,
+        statusNovo: confirmingDelivery ? 'ENTREGUE_NO_PONTO' : rejectingDelivery ? 'NAO_RECEBIDO' : parsed.data.status,
+        descricao: confirmingDelivery ? 'Contribuição física recebida e somada à meta' : `Situação alterada para ${parsed.data.status}`,
       },
     });
     return result;

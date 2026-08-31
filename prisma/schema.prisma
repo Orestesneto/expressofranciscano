@@ -9,16 +9,16 @@ datasource db {
 }
 
 model Administrador {
-  id                    Int                   @id @default(autoincrement())
-  nome                  String
-  email                 String                @unique
-  senhaHash             String
-  perfil                String
-  ativo                 Boolean               @default(true)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  historicos            HistoricoPedido[]
-  movimentacoesEstoque  MovimentacaoEstoque[]
+  id                   Int                   @id @default(autoincrement())
+  nome                 String
+  email                String                @unique
+  senhaHash            String
+  perfil               String
+  ativo                Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  historicos           HistoricoPedido[]
+  movimentacoesEstoque MovimentacaoEstoque[]
 }
 
 model Equipe {
@@ -41,66 +41,108 @@ model Categoria {
 }
 
 model Produto {
-  id              Int               @id @default(autoincrement())
-  categoria       Categoria?        @relation(fields: [categoriaId], references: [id])
-  categoriaId     Int?
-  nome            String
-  descricao       String?
-  imagemUrl       String?
-  preco           Decimal
-  estoque         Int               @default(0)
-  estoqueMinimo   Int               @default(0)
-  disponivelVenda Boolean           @default(true)
-  personalizado   Boolean           @default(false)
-  ativo           Boolean           @default(true)
-  limitePorPedido Int?            
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  variacoes       ProdutoVariacao[]
-  pedidoItens     PedidoItem[]
-  movimentacoes   MovimentacaoEstoque[]
+  id                   Int                   @id @default(autoincrement())
+  categoria            Categoria?            @relation(fields: [categoriaId], references: [id])
+  categoriaId          Int?
+  nome                 String
+  descricao            String?
+  imagemUrl            String?
+  preco                Decimal
+  estoque              Int                   @default(0)
+  estoqueMinimo        Int                   @default(0)
+  disponivelVenda      Boolean               @default(true)
+  personalizado        Boolean               @default(false)
+  ativo                Boolean               @default(true)
+  limitePorPedido      Int?
+  unidade              String                @default("unidade")
+  metaQuantidade       Int                   @default(0)
+  quantidadeArrecadada Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  variacoes            ProdutoVariacao[]
+  pedidoItens          PedidoItem[]
+  movimentacoes        MovimentacaoEstoque[]
+  cupons               CupomProduto[]
 }
 
 model ProdutoVariacao {
-  id         Int      @id @default(autoincrement())
-  produto    Produto  @relation(fields: [produtoId], references: [id])
-  produtoId  Int
-  nome       String
-  valor      Decimal
-  estoque    Int      @default(0)
-  ativo      Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int          @id @default(autoincrement())
+  produto     Produto      @relation(fields: [produtoId], references: [id])
+  produtoId   Int
+  nome        String
+  valor       Decimal
+  estoque     Int          @default(0)
+  ativo       Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   pedidoItens PedidoItem[]
 }
 
 model Pedido {
-  id                    Int              @id @default(autoincrement())
-  codigo                String           @unique
-  nomeCliente           String
-  sobrenomeCliente      String
-  telefone              String?
-  telefoneNormalizado   String?
-  equipeNome            String?
-  equipe                Equipe?          @relation(fields: [equipeId], references: [id])
-  equipeId              Int?
-  valorTotal            Decimal
-  statusPagamento       String           @default("AGUARDANDO_PAGAMENTO")
-  statusProducao        String           @default("AGUARDANDO_PAGAMENTO")
-  observacaoCliente     String?
+  id                      Int                   @id @default(autoincrement())
+  codigo                  String                @unique
+  nomeCliente             String
+  sobrenomeCliente        String
+  telefone                String?
+  telefoneNormalizado     String?
+  equipeNome              String?
+  equipe                  Equipe?               @relation(fields: [equipeId], references: [id])
+  equipeId                Int?
+  valorTotal              Decimal
+  statusPagamento         String                @default("AGUARDANDO_PAGAMENTO")
+  statusProducao          String                @default("AGUARDANDO_PAGAMENTO")
+  observacaoCliente       String?
   observacaoAdministrador String?
-  mercadoPagoPaymentId  String?
-  createdAt             DateTime         @default(now())
-  paidAt                DateTime?
-  deliveredAt           DateTime?
-  updatedAt             DateTime         @updatedAt
-  itens                 PedidoItem[]
-  pagamento             Pagamento?
-  historicos            HistoricoPedido[]
-  movimentacoesEstoque  MovimentacaoEstoque[]
-  imagens               PedidoImagem[]
+  mercadoPagoPaymentId    String?
+  createdAt               DateTime              @default(now())
+  paidAt                  DateTime?
+  deliveredAt             DateTime?
+  updatedAt               DateTime              @updatedAt
+  itens                   PedidoItem[]
+  pagamento               Pagamento?
+  historicos              HistoricoPedido[]
+  movimentacoesEstoque    MovimentacaoEstoque[]
+  imagens                 PedidoImagem[]
+  cupom                   CupomDesconto?        @relation(fields: [cupomId], references: [id])
+  cupomId                 Int?
+  codigoCupom             String?
+  valorDesconto           Decimal               @default(0)
+  formaContribuicao       String                @default("PIX")
+  anonimo                 Boolean               @default(false)
+  fotoPerfilUrl           String?
+  fotoPerfilPathname      String?
+  fotoPerfilNome          String?
+  fotoPerfilContentType   String?
+  pontoRecolhimento       PontoRecolhimento?   @relation(fields: [pontoRecolhimentoId], references: [id])
+  pontoRecolhimentoId     Int?
 
   @@index([telefoneNormalizado])
+  @@index([pontoRecolhimentoId])
+}
+
+model CupomDesconto {
+  id             Int            @id @default(autoincrement())
+  codigo         String         @unique
+  valor          Decimal
+  tipo           String
+  ativo          Boolean        @default(true)
+  usadoEm        DateTime?
+  valorMinimo    Decimal?
+  limiteUsos     Int            @default(1)
+  usosRealizados Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  produtos       CupomProduto[]
+  pedidos        Pedido[]
+}
+
+model CupomProduto {
+  cupom     CupomDesconto @relation(fields: [cupomId], references: [id], onDelete: Cascade)
+  cupomId   Int
+  produto   Produto       @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId Int
+
+  @@id([cupomId, produtoId])
 }
 
 model PedidoImagem {
@@ -115,10 +157,10 @@ model PedidoImagem {
 }
 
 model PedidoItem {
-  id            Int      @id @default(autoincrement())
-  pedido        Pedido   @relation(fields: [pedidoId], references: [id])
+  id            Int              @id @default(autoincrement())
+  pedido        Pedido           @relation(fields: [pedidoId], references: [id])
   pedidoId      Int
-  produto       Produto  @relation(fields: [produtoId], references: [id])
+  produto       Produto          @relation(fields: [produtoId], references: [id])
   produtoId     Int
   variacao      ProdutoVariacao? @relation(fields: [variacaoId], references: [id])
   variacaoId    Int?
@@ -129,21 +171,21 @@ model PedidoItem {
 }
 
 model Pagamento {
-  id             Int      @id @default(autoincrement())
-  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
-  pedidoId       Int      @unique
-  provedor       String
-  paymentId      String
-  status         String
-  valor          Decimal
-  qrCode         String?
-  qrCodeBase64   String?
-  pixCopiaCola   String?
-  dataExpiracao  DateTime?
-  dadosRetorno   String?
-  movimentacoes  MovimentacaoEstoque[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            Int                   @id @default(autoincrement())
+  pedido        Pedido                @relation(fields: [pedidoId], references: [id])
+  pedidoId      Int                   @unique
+  provedor      String
+  paymentId     String
+  status        String
+  valor         Decimal
+  qrCode        String?
+  qrCodeBase64  String?
+  pixCopiaCola  String?
+  dataExpiracao DateTime?
+  dadosRetorno  String?
+  movimentacoes MovimentacaoEstoque[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
 }
 
 model HistoricoPedido {
@@ -159,19 +201,40 @@ model HistoricoPedido {
 }
 
 model MovimentacaoEstoque {
-  id              Int               @id @default(autoincrement())
-  produto         Produto           @relation(fields: [produtoId], references: [id])
+  id              Int            @id @default(autoincrement())
+  produto         Produto        @relation(fields: [produtoId], references: [id])
   produtoId       Int
-  pedido          Pedido?           @relation(fields: [pedidoId], references: [id])
+  pedido          Pedido?        @relation(fields: [pedidoId], references: [id])
   pedidoId        Int?
-  administrador   Administrador?    @relation(fields: [administradorId], references: [id])
+  administrador   Administrador? @relation(fields: [administradorId], references: [id])
   administradorId Int?
-  pagamento       Pagamento?        @relation(fields: [pagamentoId], references: [id])
+  pagamento       Pagamento?     @relation(fields: [pagamentoId], references: [id])
   pagamentoId     Int?
   tipo            String
   quantidade      Int
   estoqueAnterior Int
   estoqueNovo     Int
   motivo          String?
-  createdAt       DateTime          @default(now())
+  createdAt       DateTime       @default(now())
+}
+
+model PontoRecolhimento {
+  id                    Int      @id @default(autoincrement())
+  nome                  String
+  whatsapp              String
+  whatsappNormalizado   String
+  endereco              String
+  bairro                String
+  fotoPerfilUrl         String?
+  fotoPerfilPathname    String?
+  fotoPerfilNome        String?
+  fotoPerfilContentType String?
+  autorizado            Boolean  @default(false)
+  disponibilidadeBusca  Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  pedidos               Pedido[]
+
+  @@index([whatsappNormalizado])
+  @@index([bairro])
 }

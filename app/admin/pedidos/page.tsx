@@ -12,6 +12,8 @@ const statusLabels: Record<string, string> = {
   PRONTO_PARA_RETIRADA: 'Pronto para retirada',
   ENTREGUE: 'Entregue',
   CANCELADO: 'Cancelado',
+  AGUARDANDO_ENTREGA: 'Aguardando entrega no ponto',
+  ENTREGUE_NO_PONTO: 'Recebido no ponto',
 };
 
 export default async function AdminPedidosPage() {
@@ -19,7 +21,7 @@ export default async function AdminPedidosPage() {
   if (!isValidAdminSession(session)) redirect('/admin/login');
 
   const pedidos = await prisma.pedido.findMany({
-    where: { statusPagamento: 'PAGO' },
+    where: { statusPagamento: { in: ['PAGO', 'AGUARDANDO_ENTREGA'] } },
     include: { itens: true, imagens: true },
     orderBy: { paidAt: 'desc' },
   });
@@ -27,8 +29,8 @@ export default async function AdminPedidosPage() {
   return (
     <main className="container py-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-950">Pedidos pagos</h1>
-        <p className="mt-2 text-slate-600">Acompanhe a produção e confirme a entrega dos pedidos.</p>
+        <h1 className="text-3xl font-bold text-slate-950">Contribuições</h1>
+        <p className="mt-2 text-slate-600">Acompanhe pagamentos e confirme as entregas feitas no ponto de recebimento.</p>
       </div>
 
       {pedidos.length === 0 ? (
@@ -40,19 +42,26 @@ export default async function AdminPedidosPage() {
           {pedidos.map((pedido) => (
             <article key={pedido.id} className="rounded-3xl bg-white p-6 shadow-soft">
               <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-                <div>
+                <div className="flex items-start gap-4">
+                  {pedido.fotoPerfilUrl && !pedido.anonimo ? (
+                    <img src={`/api/admin/pedidos/${pedido.id}/perfil`} alt={`Foto de ${pedido.nomeCliente}`} className="h-16 w-16 shrink-0 rounded-full border-2 border-orange-200 object-cover" />
+                  ) : (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-800">{pedido.anonimo ? '?' : pedido.nomeCliente.charAt(0).toUpperCase()}</div>
+                  )}
+                  <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="text-xl font-bold text-slate-950">Pedido #{pedido.codigo}</h2>
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">PAGO</span>
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{pedido.statusPagamento === 'PAGO' ? 'CONFIRMADA' : 'AGUARDANDO ENTREGA'}</span>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
                       {statusLabels[pedido.statusProducao] ?? pedido.statusProducao}
                     </span>
                   </div>
                   <div className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
                     <p><span className="text-slate-500">Cliente:</span> <strong>{pedido.nomeCliente}</strong></p>
-                    <p><span className="text-slate-500">Equipe:</span> <strong>{pedido.equipeNome || 'Não informada'}</strong></p>
                     <p><span className="text-slate-500">Telefone:</span> <strong>{pedido.telefone || 'Não informado'}</strong></p>
+                    <p><span className="text-slate-500">Forma:</span> <strong>{pedido.formaContribuicao === 'ENTREGA' ? 'Entrega no ponto' : pedido.formaContribuicao}</strong></p>
                     <p><span className="text-slate-500">Pago em:</span> <strong>{pedido.paidAt?.toLocaleString('pt-BR') || '-'}</strong></p>
+                  </div>
                   </div>
                 </div>
                 <div className="shrink-0 text-left lg:text-right">

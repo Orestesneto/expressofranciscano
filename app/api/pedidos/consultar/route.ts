@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { normalizeBrazilianPhone } from '@/lib/phone';
 
 const schema = z.object({
-  telefone: z.string().transform((value) => value.replace(/\D/g, '')).pipe(z.string().min(8).max(15)),
+  telefone: z.string().transform((value, ctx) => {
+    const telefone = normalizeBrazilianPhone(value);
+    if (!telefone) {
+      ctx.addIssue({ code: 'custom', message: 'Informe um telefone válido com 11 dígitos.' });
+      return z.NEVER;
+    }
+    return telefone;
+  }),
 });
 
 export async function POST(request: NextRequest) {
@@ -36,7 +44,6 @@ export async function POST(request: NextRequest) {
     pedidos: pedidos.map((pedido) => ({
       codigo: pedido.codigo,
       nomeCliente: pedido.nomeCliente,
-      equipe: pedido.equipeNome,
       valorTotal: Number(pedido.valorTotal),
       statusPagamento: pedido.statusPagamento,
       statusProducao: pedido.statusProducao,

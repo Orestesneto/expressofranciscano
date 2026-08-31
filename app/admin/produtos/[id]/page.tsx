@@ -60,8 +60,8 @@ export default async function ProdutoDetalhePage({ params }: Params) {
           <aside className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
             <div className="space-y-5">
               <div>
-                <p className="text-sm text-slate-600">Estoque atual</p>
-                <p className="mt-2 text-xl font-semibold text-slate-900">{produto.estoque}</p>
+                <p className="text-sm text-slate-600">Itens necessários</p>
+                <p className="mt-2 text-xl font-semibold text-slate-900">{produto.metaQuantidade} {produto.unidade}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-600">Disponibilidade</p>

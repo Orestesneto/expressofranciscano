@@ -1,0 +1,8 @@
+.git
+.next
+.next-*
+.openai
+node_modules
+.env
+.env.*
+tsconfig.tsbuildinfo

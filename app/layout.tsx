@@ -5,8 +5,35 @@ import SiteFooter from '@/components/site-footer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ORESTES STORE',
-  description: 'Loja de e-commerce com retirada no local e pagamento Pix',
+  metadataBase: new URL('https://expresso-franciscano.vercel.app'),
+  title: 'Expresso Franciscano',
+  description:
+    'Colabore com o Expresso franciscano! compre e Doe para equipe do Mestre Cuca.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: '/',
+    siteName: 'Expresso Franciscano',
+    title: 'Expresso Franciscano',
+    description: 'Colabore com o Expresso franciscano! compre e Doe para equipe do Mestre Cuca',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'Expresso Franciscano — Produtos personalizados e exclusivos',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Expresso Franciscano',
+    description: 'Colabore com o Expresso franciscano! compre e Doe para equipe do Mestre Cuca.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

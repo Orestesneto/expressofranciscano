@@ -5,11 +5,12 @@ import { isValidAdminSession } from '@/lib/auth';
 
 const produtoSchema = z.object({
   nome: z.string().min(3),
+  categoria: z.enum(['Mantimentos', 'Proteína', 'Hortifruti', 'Material de limpeza', 'Descartáveis', 'Carnes']),
   descricao: z.string().optional(),
   imagemUrl: z.union([z.string().url(), z.literal('')]).optional(),
   preco: z.number().positive(),
-  estoque: z.number().int().min(0),
-  estoqueMinimo: z.number().int().min(0),
+  metaQuantidade: z.number().int().positive(),
+  unidade: z.string().trim().min(1).max(30),
   disponivelVenda: z.boolean(),
   personalizado: z.boolean(),
   ativo: z.boolean(),
@@ -29,30 +30,26 @@ export async function POST(request: NextRequest) {
 
   const produto = await prisma.produto.create({
     data: {
+      categoria: {
+        connectOrCreate: {
+          where: { nome: parseResult.data.categoria },
+          create: { nome: parseResult.data.categoria, ativa: true },
+        },
+      },
       nome: parseResult.data.nome,
       descricao: parseResult.data.descricao,
       imagemUrl: parseResult.data.imagemUrl,
       preco: parseResult.data.preco,
-      estoque: parseResult.data.estoque,
-      estoqueMinimo: parseResult.data.estoqueMinimo,
+      estoque: parseResult.data.metaQuantidade,
+      estoqueMinimo: 0,
+      metaQuantidade: parseResult.data.metaQuantidade,
+      quantidadeArrecadada: 0,
+      unidade: parseResult.data.unidade,
       disponivelVenda: parseResult.data.disponivelVenda,
       personalizado: parseResult.data.personalizado,
       ativo: parseResult.data.ativo,
     },
   });
-
-  if (produto.estoque > 0) {
-    await prisma.movimentacaoEstoque.create({
-      data: {
-        produtoId: produto.id,
-        tipo: 'ENTRADA',
-        quantidade: produto.estoque,
-        estoqueAnterior: 0,
-        estoqueNovo: produto.estoque,
-        motivo: 'Cadastro inicial de estoque',
-      },
-    });
-  }
 
   return NextResponse.json({ produto });
 }

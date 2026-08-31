@@ -27,6 +27,20 @@ export interface PixPaymentResult {
   pixCopyPaste: string;
 }
 
+export interface CreateCardPaymentParams {
+  amount: number;
+  token: string;
+  installments: number;
+  paymentMethodId: string;
+  issuerId?: string;
+  payerEmail: string;
+  identificationType?: string;
+  identificationNumber?: string;
+  description: string;
+  externalReference: string;
+  notificationUrl?: string;
+}
+
 export async function createPixPayment(params: CreatePixPaymentParams): Promise<PixPaymentResult> {
   const transaction = await getPaymentsClient().create({
     body: {
@@ -36,7 +50,7 @@ export async function createPixPayment(params: CreatePixPaymentParams): Promise<
       external_reference: params.externalReference,
       notification_url: params.notificationUrl,
       payer: {
-        email: params.payerEmail ?? 'cliente@orestesstore.com.br',
+        email: params.payerEmail ?? 'cliente@expressofranciscano.com.br',
         first_name: params.payerName,
       },
     },
@@ -56,4 +70,34 @@ export async function createPixPayment(params: CreatePixPaymentParams): Promise<
 
 export async function getPayment(paymentId: string) {
   return getPaymentsClient().get({ id: paymentId });
+}
+
+export async function createCardPayment(params: CreateCardPaymentParams) {
+  const transaction = await getPaymentsClient().create({
+    body: {
+      transaction_amount: Number(params.amount),
+      token: params.token,
+      installments: params.installments,
+      payment_method_id: params.paymentMethodId,
+      issuer_id: params.issuerId ? Number(params.issuerId) : undefined,
+      description: params.description,
+      external_reference: params.externalReference,
+      notification_url: params.notificationUrl,
+      payer: {
+        email: params.payerEmail,
+        identification:
+          params.identificationType && params.identificationNumber
+            ? { type: params.identificationType, number: params.identificationNumber }
+            : undefined,
+      },
+    },
+    requestOptions: { idempotencyKey: `card-${params.externalReference}` },
+  });
+
+  return {
+    paymentId: String(transaction.id),
+    status: String(transaction.status),
+    statusDetail: String(transaction.status_detail ?? ''),
+    amount: Number(transaction.transaction_amount),
+  };
 }

@@ -42,10 +42,6 @@ export default async function PedidoConfirmadoPage({
             <p className="mt-1 font-semibold">{[pedido.nomeCliente, pedido.sobrenomeCliente].filter(Boolean).join(' ')}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500">Equipe</p>
-            <p className="mt-1 font-semibold">{pedido.equipeNome || 'Não informada'}</p>
-          </div>
-          <div>
             <p className="text-sm text-slate-500">Telefone</p>
             <p className="mt-1 font-semibold">{pedido.telefone || 'Não informado'}</p>
           </div>

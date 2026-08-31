@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { getPayment } from '@/lib/mercadopago';
+import { addOrderToCollection } from '@/lib/collection';
 
 export async function syncMercadoPagoPayment(paymentId: string) {
   const payment = await getPayment(paymentId);
@@ -67,31 +68,7 @@ export async function syncMercadoPagoPayment(paymentId: string) {
       });
       if (claimed.count === 0) return;
 
-      for (const item of pedido.itens) {
-        const anterior = await tx.produto.findUnique({
-          where: { id: item.produtoId },
-          select: { estoque: true },
-        });
-        if (!anterior || anterior.estoque < item.quantidade) {
-          throw new Error(`ESTOQUE_INSUFICIENTE:${item.produtoId}`);
-        }
-        const produto = await tx.produto.update({
-          where: { id: item.produtoId },
-          data: { estoque: { decrement: item.quantidade } },
-        });
-        await tx.movimentacaoEstoque.create({
-          data: {
-            produtoId: item.produtoId,
-            pedidoId: pedido.id,
-            pagamentoId: paymentRecord.id,
-            tipo: 'VENDA',
-            quantidade: -item.quantidade,
-            estoqueAnterior: anterior.estoque,
-            estoqueNovo: produto.estoque,
-            motivo: `Venda do pedido ${pedido.codigo}`,
-          },
-        });
-      }
+      await addOrderToCollection(tx, pedido, paymentRecord.id);
     });
   } else if (pedido.statusPagamento !== 'PAGO') {
     await prisma.pedido.update({

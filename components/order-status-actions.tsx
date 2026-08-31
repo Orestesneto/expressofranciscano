@@ -4,6 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const actions: Record<string, { status: string; label: string; style: string } | undefined> = {
+  AGUARDANDO_ENTREGA: {
+    status: 'RECEBIDO_NO_PONTO',
+    label: 'Confirmar recebimento da doação',
+    style: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+  },
   PEDIDO_RECEBIDO: {
     status: 'EM_PRODUCAO',
     label: 'Iniciar produção',
@@ -28,17 +33,15 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
   const action = actions[statusAtual];
 
   if (!action) {
-    return (
-      <span className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600">
-        {statusAtual === 'ENTREGUE' ? 'Pedido entregue' : 'Sem ação disponível'}
-      </span>
-    );
+    return <span className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600">{statusAtual === 'ENTREGUE' ? 'Pedido entregue' : 'Sem ação disponível'}</span>;
   }
 
-  async function updateStatus() {
-    if (action?.status === 'ENTREGUE' && !window.confirm('Confirma a entrega deste pedido?')) return;
-    const shouldOpenWhatsApp =
-      action?.status === 'EM_PRODUCAO' || action?.status === 'PRONTO_PARA_RETIRADA';
+  async function updateStatus(requestedStatus = action?.status) {
+    if (!requestedStatus) return;
+    if ((requestedStatus === 'ENTREGUE' || requestedStatus === 'RECEBIDO_NO_PONTO') && !window.confirm('Confirma o recebimento desta contribuição? Ela será somada à meta.')) return;
+    if (requestedStatus === 'NAO_RECEBIDO' && !window.confirm('Confirma que este pedido não foi recebido? Os itens não serão somados à meta.')) return;
+
+    const shouldOpenWhatsApp = requestedStatus === 'EM_PRODUCAO' || requestedStatus === 'PRONTO_PARA_RETIRADA';
     const whatsappWindow = shouldOpenWhatsApp ? window.open('', '_blank') : null;
     setLoading(true);
     setError(null);
@@ -46,7 +49,7 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
       const response = await fetch(`/api/admin/pedidos/${pedidoId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: action?.status }),
+        body: JSON.stringify({ status: requestedStatus }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -62,17 +65,12 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
           window.alert('O status foi atualizado, mas o cliente não informou um telefone.');
         } else {
           const telefoneComPais = telefone.startsWith('55') ? telefone : `55${telefone}`;
-          const mensagem =
-            action?.status === 'PRONTO_PARA_RETIRADA'
-              ? `Olá ${result.pedido.nomeCliente}, o seu pedido está pronto para retirada.`
-              : `Olá ${result.pedido.nomeCliente}, o seu produto de número #${result.pedido.codigo} iniciou o processo de produção! Em breve estará disponível para retirada!`;
+          const mensagem = requestedStatus === 'PRONTO_PARA_RETIRADA'
+            ? `Olá ${result.pedido.nomeCliente}, o seu pedido está pronto para retirada.`
+            : `Olá ${result.pedido.nomeCliente}, o seu produto de número #${result.pedido.codigo} iniciou o processo de produção! Em breve estará disponível para retirada!`;
           const whatsappUrl = `https://wa.me/${telefoneComPais}?text=${encodeURIComponent(mensagem)}`;
-
-          if (whatsappWindow) {
-            whatsappWindow.location.href = whatsappUrl;
-          } else {
-            window.location.href = whatsappUrl;
-          }
+          if (whatsappWindow) whatsappWindow.location.href = whatsappUrl;
+          else window.location.href = whatsappUrl;
         }
       }
       router.refresh();
@@ -85,16 +83,16 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
   }
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={updateStatus}
-        disabled={loading}
-        className={`rounded-xl px-4 py-2 text-sm font-bold disabled:opacity-50 ${action.style}`}
-      >
+    <div className="flex flex-wrap justify-end gap-3">
+      {statusAtual === 'AGUARDANDO_ENTREGA' ? (
+        <button type="button" onClick={() => updateStatus('NAO_RECEBIDO')} disabled={loading} className="rounded-xl border border-red-600 bg-white px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:opacity-50">
+          {loading ? 'Atualizando...' : 'Não recebemos o pedido'}
+        </button>
+      ) : null}
+      <button type="button" onClick={() => updateStatus()} disabled={loading} className={`rounded-xl px-4 py-2 text-sm font-bold disabled:opacity-50 ${action.style}`}>
         {loading ? 'Atualizando...' : action.label}
       </button>
-      {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="w-full text-right text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }

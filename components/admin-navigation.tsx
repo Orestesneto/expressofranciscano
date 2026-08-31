@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardList, LayoutDashboard, LogOut, Package, PlusCircle, Store } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, LogOut, MapPinPlus, Package, PlusCircle, Store, TicketPercent } from 'lucide-react';
 import { useState } from 'react';
 
 const tabs = [
@@ -10,6 +10,8 @@ const tabs = [
   { href: '/admin/pedidos', label: 'Pedidos', icon: ClipboardList },
   { href: '/admin/produtos', label: 'Produtos', icon: Package },
   { href: '/admin/produtos/novo', label: 'Novo produto', icon: PlusCircle, exact: true },
+  { href: '/admin/cupons', label: 'Cupons de desconto', icon: TicketPercent },
+  { href: '/admin/pontos-recolhimento', label: 'Pontos cadastrados', icon: MapPinPlus },
 ];
 
 export default function AdminNavigation() {
@@ -33,7 +35,7 @@ export default function AdminNavigation() {
       <div className="container">
         <div className="flex min-h-20 items-center justify-between gap-4">
           <Link href="/admin" className="shrink-0">
-            <span className="block text-lg font-bold text-slate-950">ORESTES STORE</span>
+            <span className="block text-lg font-bold text-slate-950">EXPRESSO FRANCISCANO</span>
             <span className="block text-xs text-slate-500">Painel administrativo</span>
           </Link>
 
