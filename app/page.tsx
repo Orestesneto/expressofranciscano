@@ -22,7 +22,13 @@ export default async function HomePage() {
   const grupos = classificacoes
     .map((categoria) => ({
       categoria,
-      produtos: produtos.filter((produto) => produto.categoria?.nome === categoria),
+      produtos: produtos
+        .filter((produto) => produto.categoria?.nome === categoria)
+        .sort(
+          (produtoA, produtoB) =>
+            Number(produtoA.quantidadeArrecadada >= produtoA.metaQuantidade) -
+            Number(produtoB.quantidadeArrecadada >= produtoB.metaQuantidade),
+        ),
     }))
     .filter((grupo) => grupo.produtos.length > 0);
 
