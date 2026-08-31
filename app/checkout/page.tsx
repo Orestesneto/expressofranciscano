@@ -9,6 +9,7 @@ import { upload } from '@vercel/blob/client';
 import { createClient } from '@supabase/supabase-js';
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react';
 import { useCart } from '@/components/cart-context';
+import { formatOrderCode } from '@/lib/order-code';
 
 initMercadoPago(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY ?? '');
 
@@ -700,7 +701,7 @@ export default function CheckoutPage() {
                 <h2 id="pix-modal-title" className="mt-2 text-2xl font-bold text-slate-950">
                   Escaneie para pagar
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">Pedido #{payment.codigo}</p>
+                <p className="mt-1 text-sm text-slate-500">Pedido {formatOrderCode(payment.codigo)}</p>
               </div>
               <button
                 type="button"

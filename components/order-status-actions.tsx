@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { formatOrderCode } from '@/lib/order-code';
 
 const actions: Record<string, { status: string; label: string; style: string } | undefined> = {
   AGUARDANDO_ENTREGA: {
@@ -67,7 +68,7 @@ export default function OrderStatusActions({ pedidoId, statusAtual }: { pedidoId
           const telefoneComPais = telefone.startsWith('55') ? telefone : `55${telefone}`;
           const mensagem = requestedStatus === 'PRONTO_PARA_RETIRADA'
             ? `Olá ${result.pedido.nomeCliente}, o seu pedido está pronto para retirada.`
-            : `Olá ${result.pedido.nomeCliente}, o seu produto de número #${result.pedido.codigo} iniciou o processo de produção! Em breve estará disponível para retirada!`;
+            : `Olá ${result.pedido.nomeCliente}, o seu produto de número ${formatOrderCode(result.pedido.codigo)} iniciou o processo de produção! Em breve estará disponível para retirada!`;
           const whatsappUrl = `https://wa.me/${telefoneComPais}?text=${encodeURIComponent(mensagem)}`;
           if (whatsappWindow) whatsappWindow.location.href = whatsappUrl;
           else window.location.href = whatsappUrl;

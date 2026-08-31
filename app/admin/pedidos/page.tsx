@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { isValidAdminSession } from '@/lib/auth';
 import OrderStatusActions from '@/components/order-status-actions';
+import { formatOrderCode } from '@/lib/order-code';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +51,7 @@ export default async function AdminPedidosPage() {
                   )}
                   <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-xl font-bold text-slate-950">Pedido #{pedido.codigo}</h2>
+                    <h2 className="text-xl font-bold text-slate-950">Pedido {formatOrderCode(pedido.codigo)}</h2>
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{pedido.statusPagamento === 'PAGO' ? 'CONFIRMADA' : 'AGUARDANDO ENTREGA'}</span>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
                       {statusLabels[pedido.statusProducao] ?? pedido.statusProducao}
